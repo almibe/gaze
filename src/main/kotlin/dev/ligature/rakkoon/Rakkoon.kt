@@ -14,22 +14,37 @@ data class RakkoonError(val message: String, val charOffset: Int)
 
 val noMatchFound = RakkoonError("No match found.", 0)
 
+fun stringPattern(toMatch: String) = Pattern { input ->
+    if (input.startsWith(toMatch)) {
+        Some(MatchInfo(toMatch.length))
+    } else {
+        none()
+    }
+}
+
 fun interface Pattern {
-    fun matches(input: String): Option<MatchInfo>
+    fun matches(input: CharSequence): Option<MatchInfo>
 }
 
 fun interface Action<T> {
-    fun action(token: String): Either<RakkoonError, T>
+    fun action(token: CharSequence): Either<RakkoonError, T>
 }
 
 val ignore = Action { Either.Right(Unit) }
 
-fun <T>rakkoon(input: String, rule: Rule<T>): Either<RakkoonError, T> {
-    val matchInfo = rule.pattern.matches(input)
-    return if (matchInfo is Some && input.length == matchInfo.value.endChar-1) {
-        val sub = input.substring(0, matchInfo.value.endChar)
-        rule.action.action(sub)
-    } else {
-        Either.Left(noMatchFound)
+class Rakkoon(private var input: CharSequence) {
+    fun <T>bite(rule: Rule<T>): Either<RakkoonError, T> {
+        val matchInfo = rule.pattern.matches(input)
+        return if (!isComplete() && matchInfo is Some) {
+            val sub = input.substring(0, matchInfo.value.endChar)
+            input = input.subSequence(matchInfo.value.endChar, input.length)
+            rule.action.action(sub)
+        } else {
+            Either.Left(noMatchFound)
+        }
+    }
+
+    fun isComplete(): Boolean {
+        return input.isEmpty()
     }
 }

@@ -1,12 +1,4 @@
 # rakkoon
-A(nother) parser combinator library for Kotlin.
+Rakkoon is a small utility library with the goal of making it easier to work with parsing Strings.
 
-This project is just starting, but the goals of the project are as follows.
-
-## Goals
- * Have a simple and extendable api based on Rules that are made up of a Pattern and an Action that runs when a Pattern matches.
- * Good error messages
- * Have extensive tests
- * Eventually support a streaming parser based on Kotlin's Flows
- * Stay up on the current Kotlin version
- * Use Arrow alongside the Kotlin Standard Library
+It's experimental at the moment and not optimized at all so you can play around with it, but don't expect much.

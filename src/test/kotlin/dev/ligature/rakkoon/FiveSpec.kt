@@ -4,38 +4,32 @@
 
 package dev.ligature.rakkoon
 
-import arrow.core.Either
-import arrow.core.Some
-import arrow.core.none
+import arrow.core.*
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-
-private val fivePattern = Pattern { input ->
-    if (input.startsWith("5")) {
-        Some(MatchInfo(1))
-    } else {
-        none()
-    }
-}
+import io.kotest.matchers.types.shouldBeInstanceOf
 
 private val fiveAction = Action { token ->
-    Either.Right(token.toInt())
+    Either.Right(token.toString().toInt())
 }
 
-private val fiveRule = Rule(fivePattern, fiveAction)
+private val fiveRule = Rule(stringPattern("5"), fiveAction)
 
 class FiveSpec : FunSpec() {
     init {
         test("empty input") {
-            rakkoon("", fiveRule).shouldBe(none<Int>())
+            val rakkoon = Rakkoon("")
+            rakkoon.bite(fiveRule).shouldBeInstanceOf<Either.Left<RakkoonError>>()
         }
 
         test("single 5 input") {
-            rakkoon("5", fiveRule).shouldBe(Some<Int>(5))
+            val rakkoon = Rakkoon("5")
+            rakkoon.bite(fiveRule).shouldBe(Either.Right(5))
         }
 
         test("single 4 input") {
-            rakkoon("4", fiveRule).shouldBe(Some<Int>(5))
+            val rakkoon = Rakkoon("4")
+            rakkoon.bite(fiveRule).shouldBeInstanceOf<Either.Left<RakkoonError>>()
         }
     }
 }
