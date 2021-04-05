@@ -9,11 +9,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 
-private val fiveAction = Action { token ->
-    Either.Right(token.toString().toInt())
-}
-
-private val fiveRule = Rule(stringPattern("5"), fiveAction)
+private val fiveRule = Rule(stringPattern("5"), toIntAction)
 
 class FiveSpec : FunSpec() {
     init {
