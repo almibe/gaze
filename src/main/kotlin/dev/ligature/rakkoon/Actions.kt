@@ -7,7 +7,7 @@ package dev.ligature.rakkoon
 import arrow.core.*
 
 fun interface Action<T> {
-    fun action(token: CharSequence): Either<RakkoonError, T>
+    fun action(token: CharSequence): Either<ActionError, T>
 }
 
 val toIntAction = Action { token ->

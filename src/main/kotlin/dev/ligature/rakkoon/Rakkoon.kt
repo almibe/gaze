@@ -8,8 +8,10 @@ import arrow.core.*
 
 data class Rule<T>(val pattern: Pattern, val action: Action<T>)
 data class MatchInfo(val endChar: Int)
-data class RakkoonError(val message: String, val charOffset: Int)
-val noMatchFound = RakkoonError("No match found.", 0)
+
+sealed class RakkoonError
+data class NoMatch(val charOffset: Int): RakkoonError()
+data class ActionError(val message: String, val charOffset: Int): RakkoonError()
 
 class Rakkoon(private var input: CharSequence) {
     fun <T>bite(rule: Rule<T>): Either<RakkoonError, T> {
@@ -19,7 +21,7 @@ class Rakkoon(private var input: CharSequence) {
             input = input.subSequence(matchInfo.value.endChar, input.length)
             rule.action.action(sub)
         } else {
-            Either.Left(noMatchFound)
+            Either.Left(NoMatch(0)) //TODO compute actual offset
         }
     }
 

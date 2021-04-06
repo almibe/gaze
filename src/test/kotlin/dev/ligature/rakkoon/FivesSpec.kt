@@ -5,27 +5,34 @@
 package dev.ligature.rakkoon
 
 import arrow.core.Either
-import arrow.core.Some
-import arrow.core.none
+import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 
-private val fivesPattern = Pattern { input ->
-    if (input.startsWith("5")) {
-        Some(MatchInfo(1))
-    } else {
-        none()
-    }
-}
+private val fivesRule = Rule(stringPattern("5"), toIntAction)
 
-private val fivesAction = Action { token ->
-    Either.Right(token.toInt())
-}
-
+@Ignored
 class FivesSpec : FunSpec() {
     init {
         test("empty input") {
-            rakkoon("", Rule(fivesPattern, fivesAction)).shouldBe(listOf<Int>())
+            val rakkoon = Rakkoon("")
+            rakkoon.bite(fivesRule).shouldBeInstanceOf<Either.Left<RakkoonError>>()
+        }
+
+        test("single 5 input") {
+            val rakkoon = Rakkoon("5")
+            rakkoon.bite(fivesRule).shouldBe(Either.Right(listOf(5)))
+        }
+
+        test("single 4 input") {
+            val rakkoon = Rakkoon("4")
+            rakkoon.bite(fivesRule).shouldBeInstanceOf<Either.Left<RakkoonError>>()
+        }
+
+        test("repeating 5s input") {
+            val rakkoon = Rakkoon("555555")
+            rakkoon.bite(fivesRule).shouldBe(Either.Right(listOf(5,5,5,5,5,5)))
         }
     }
 }

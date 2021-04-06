@@ -16,16 +16,19 @@ class FiveSpec : FunSpec() {
         test("empty input") {
             val rakkoon = Rakkoon("")
             rakkoon.bite(fiveRule).shouldBeInstanceOf<Either.Left<RakkoonError>>()
+            rakkoon.isComplete().shouldBe(true)
         }
 
         test("single 5 input") {
             val rakkoon = Rakkoon("5")
             rakkoon.bite(fiveRule).shouldBe(Either.Right(5))
+            rakkoon.isComplete().shouldBe(true)
         }
 
         test("single 4 input") {
             val rakkoon = Rakkoon("4")
             rakkoon.bite(fiveRule).shouldBeInstanceOf<Either.Left<RakkoonError>>()
+            rakkoon.isComplete().shouldBe(false)
         }
     }
 }
