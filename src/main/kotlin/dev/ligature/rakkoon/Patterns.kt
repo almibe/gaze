@@ -19,3 +19,33 @@ fun stringPattern(toMatch: String) = Pattern { input ->
         none()
     }
 }
+
+fun regexPattern(pattern: Regex) = Pattern { input ->
+    val matchRes = pattern.find(input)
+    if (matchRes != null && matchRes.range.first == 0) {
+        Some(MatchInfo(matchRes.range.last))
+    } else {
+        none()
+    }
+}
+
+fun rangePattern(vararg ranges: CharRange) = Pattern { input ->
+    fun rangeMatches(char: Char): Boolean {
+        ranges.forEach {
+            if (it.contains(char)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    var length = 0
+    while (input.length > length && rangeMatches(input[length])) {
+        length++
+    }
+    if (length > 0) {
+        Some(MatchInfo(length))
+    } else {
+        none()
+    }
+}

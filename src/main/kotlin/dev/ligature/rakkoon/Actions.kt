@@ -14,4 +14,8 @@ val toIntAction = Action { token ->
     Either.Right(token.toString().toInt())
 }
 
+val valueAction = Action { token ->
+    Either.Right(token)
+}
+
 val ignoreAction = Action { Either.Right(Unit) }
