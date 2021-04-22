@@ -2,6 +2,7 @@ plugins {
     id("org.jetbrains.kotlin.jvm") version "1.4.20"
     `java-library`
     `maven-publish`
+    jacoco
 }
 
 repositories {
