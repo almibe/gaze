@@ -23,7 +23,7 @@ fun stringPattern(toMatch: String) = Pattern { input ->
 fun regexPattern(pattern: Regex) = Pattern { input ->
     val matchRes = pattern.find(input)
     if (matchRes != null && matchRes.range.first == 0) {
-        Some(MatchInfo(matchRes.range.last))
+        Some(MatchInfo(matchRes.range.last + 1))
     } else {
         none()
     }
