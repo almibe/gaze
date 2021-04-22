@@ -14,7 +14,7 @@ private val helloRule = Rule(stringPattern("hello"), valueAction)
 private val spaceRule = Rule(stringPattern(" "), ignoreAction)
 private val worldRule = Rule(stringPattern("world"), valueAction)
 
-class FiveSpec : FunSpec() {
+class StringPatternSpec : FunSpec() {
     init {
         test("empty input") {
             val rakkoon = Rakkoon("")
