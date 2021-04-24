@@ -14,16 +14,23 @@ data class NoMatch(val charOffset: Int): RakkoonError()
 data class ActionError(val message: String, val charOffset: Int): RakkoonError()
 
 class Rakkoon(private var input: CharSequence) {
+    private var offset = 0
+
     fun <T>bite(rule: Rule<T>): Either<RakkoonError, T> {
         val matchInfo = rule.pattern.matches(input)
         return if (!isComplete() && matchInfo is Some) {
             val sub = input.substring(0, matchInfo.value.endChar)
+            offset += matchInfo.value.endChar
             input = input.subSequence(matchInfo.value.endChar, input.length)
             rule.action.action(sub)
         } else {
-            Either.Left(NoMatch(0)) //TODO compute actual offset
+            Either.Left(NoMatch(offset))
         }
     }
+
+    fun currentOffset(): Int = offset
+
+    fun remainingText(): String = input.toString()
 
     fun isComplete(): Boolean {
         return input.isEmpty()

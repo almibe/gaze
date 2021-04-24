@@ -57,5 +57,16 @@ class RegexPatternSpec : FunSpec() {
             rakkoon.bite(multiRangeRule).shouldBe(Either.Right("34kl2j4k2n4kl2lh342j34vjg2g4cg"))
             rakkoon.isComplete().shouldBe(true)
         }
+
+        test("allow working with multiple lines") {
+            val rakkoon = Rakkoon("   1234323243  \n hfjashnvjabjkrbkjab")
+            val whiteSpaceIgnoreRule = Rule(regexPattern("[ \n]+".toRegex()), ignoreAction)
+            rakkoon.bite(whiteSpaceIgnoreRule)
+            rakkoon.bite(whiteSpaceIgnoreRule) //make sure you can repeat
+            rakkoon.bite(oneToFivesRule).shouldBe(Either.Right(1234323243))
+            rakkoon.bite(whiteSpaceIgnoreRule)
+            rakkoon.bite(multiRangeRule).shouldBe(Either.Right("hfjashnvjabjkrbkjab"))
+            rakkoon.isComplete().shouldBe(true)
+        }
     }
 }
