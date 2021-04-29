@@ -7,7 +7,7 @@ package dev.ligature.rakkoon
 import arrow.core.*
 
 data class Rule<T>(val pattern: Pattern, val action: Action<T>)
-data class MatchInfo(val endChar: Int)
+data class MatchInfo(val match: IntRange, val endChar: Int)
 
 sealed class RakkoonError
 data class NoMatch(val charOffset: Int): RakkoonError()
@@ -19,7 +19,7 @@ class Rakkoon(private var input: CharSequence) {
     fun <T>bite(rule: Rule<T>): Either<RakkoonError, T> {
         val matchInfo = rule.pattern.matches(input)
         return if (!isComplete() && matchInfo is Some) {
-            val sub = input.substring(0, matchInfo.value.endChar)
+            val sub = input.substring(matchInfo.value.match.first, matchInfo.value.match.last)
             offset += matchInfo.value.endChar
             input = input.subSequence(matchInfo.value.endChar, input.length)
             rule.action.action(sub)

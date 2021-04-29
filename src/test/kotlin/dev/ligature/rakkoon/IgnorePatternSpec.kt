@@ -8,7 +8,7 @@ import arrow.core.Either
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
-private val whiteSpace = regexPattern("[ \t]*".toRegex())
+private val whiteSpace = regexPattern("[ \t]+".toRegex())
 private val testPattern = stringPattern("test")
 private val prefixRule = Rule(ignorePrefix(whiteSpace, testPattern), valueAction)
 private val suffixRule = Rule(ignoreSuffix(whiteSpace, testPattern), valueAction)
@@ -31,6 +31,16 @@ class IgnorePatternSpec : FunSpec() {
         test("support ignoreSurrounding") {
             val rakkoon = Rakkoon("\t  \t   test    \t   ")
             rakkoon.bite(surroundingRule).shouldBe(Either.Right("test"))
+            println(rakkoon.remainingText())
+            println(rakkoon.currentOffset())
+            rakkoon.isComplete().shouldBe(true)
+        }
+
+        test("support ignoreSurrounding with no ignore matches") {
+            val rakkoon = Rakkoon("test")
+            rakkoon.bite(surroundingRule).shouldBe(Either.Right("test"))
+            println(rakkoon.remainingText())
+            println(rakkoon.currentOffset())
             rakkoon.isComplete().shouldBe(true)
         }
     }

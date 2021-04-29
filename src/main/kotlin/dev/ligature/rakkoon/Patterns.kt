@@ -4,9 +4,7 @@
 
 package dev.ligature.rakkoon
 
-import arrow.core.Option
-import arrow.core.Some
-import arrow.core.none
+import arrow.core.*
 
 fun interface Pattern {
     fun matches(input: CharSequence): Option<MatchInfo>
@@ -14,16 +12,72 @@ fun interface Pattern {
 
 fun stringPattern(toMatch: String) = Pattern { input ->
     if (input.startsWith(toMatch)) {
-        Some(MatchInfo(toMatch.length))
+        Some(MatchInfo(IntRange(0, toMatch.length), toMatch.length))
     } else {
         none()
     }
 }
 
+fun ignorePrefix(prefix: Pattern, pattern: Pattern) = Pattern { input ->
+    val prefixRes = prefix.matches(input)
+    if (prefixRes.isEmpty()) {
+        pattern.matches(input)
+    } else {
+        val offset = prefixRes.getOrElse { TODO() }.endChar
+        val newInput = input.drop(offset)
+        when (val matchRes = pattern.matches(newInput)) {
+            is None -> none()
+            is Some -> Some(MatchInfo(IntRange(offset, offset + matchRes.value.endChar), offset + matchRes.value.endChar))
+        }
+    }
+}
+
+fun ignoreSuffix(suffix: Pattern, pattern: Pattern) = Pattern { input ->
+    val patternRes = pattern.matches(input)
+    if (patternRes.isEmpty()) {
+        none()
+    } else {
+        val offset = patternRes.getOrElse { TODO() }.endChar
+        val newInput = input.drop(offset)
+        when (val suffixRes = suffix.matches(newInput)) {
+            is None -> patternRes
+            is Some -> Some(MatchInfo(IntRange(0, offset), offset + suffixRes.value.endChar))
+        }
+    }
+}
+
+fun ignoreSurrounding(ignore: Pattern, pattern: Pattern) = Pattern { input ->
+    val ignorePrefixRes = ignorePrefix(ignore, pattern).matches(input)
+    if (ignorePrefixRes.isEmpty()) {
+        none()
+    } else {
+        val prefixMatchInfo = ignorePrefixRes.getOrElse { TODO() }
+        val newInput = input.subSequence(0, prefixMatchInfo.endChar)
+        val suffixMatch = ignore.matches(newInput)
+        if (suffixMatch.isEmpty()) {
+            ignorePrefixRes
+        } else {
+            val suffixMatchInfo = suffixMatch.getOrElse { TODO() }
+            Some(MatchInfo(prefixMatchInfo.match, prefixMatchInfo.endChar + suffixMatchInfo.endChar + 1))
+        }
+    }
+}
+
+fun anyPattern(vararg patterns: Pattern) = Pattern { input ->
+    var res: Option<MatchInfo> = none()
+    for(pattern in patterns) {
+        res = pattern.matches(input)
+        if (res.isNotEmpty()) {
+            break
+        }
+    }
+    res
+}
+
 fun regexPattern(pattern: Regex) = Pattern { input ->
     val matchRes = pattern.find(input)
     if (matchRes != null && matchRes.range.first == 0) {
-        Some(MatchInfo(matchRes.range.last + 1))
+        Some(MatchInfo(IntRange(0, matchRes.range.last + 1), matchRes.range.last + 1))
     } else {
         none()
     }
@@ -44,7 +98,7 @@ fun rangePattern(vararg ranges: CharRange) = Pattern { input ->
         length++
     }
     if (length > 0) {
-        Some(MatchInfo(length))
+        Some(MatchInfo(IntRange(0, length), length))
     } else {
         none()
     }
