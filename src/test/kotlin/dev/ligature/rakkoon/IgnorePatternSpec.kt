@@ -31,16 +31,12 @@ class IgnorePatternSpec : FunSpec() {
         test("support ignoreSurrounding") {
             val rakkoon = Rakkoon("\t  \t   test    \t   ")
             rakkoon.bite(surroundingRule).shouldBe(Either.Right("test"))
-            println(rakkoon.remainingText())
-            println(rakkoon.currentOffset())
             rakkoon.isComplete().shouldBe(true)
         }
 
         test("support ignoreSurrounding with no ignore matches") {
             val rakkoon = Rakkoon("test")
             rakkoon.bite(surroundingRule).shouldBe(Either.Right("test"))
-            println(rakkoon.remainingText())
-            println(rakkoon.currentOffset())
             rakkoon.isComplete().shouldBe(true)
         }
     }
