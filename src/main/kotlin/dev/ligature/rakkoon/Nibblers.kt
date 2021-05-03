@@ -4,18 +4,14 @@
 
 package dev.ligature.rakkoon
 
-fun stringNibbler(toMatch: String) = object : Nibbler {
-    var offset = 0
-
-    override fun taste(char: Char?): NibState =
-        if (offset == toMatch.length - 1 && toMatch[offset] == char) {
-            Complete()
-        } else if (offset < toMatch.length - 1 && toMatch[offset] == char) {
-            offset++
-            Next
-        } else {
-            Cancel
-        }
+fun stringNibbler(toMatch: String) = Nibbler { char, current ->
+    if (current.length == toMatch.length - 1 && toMatch[current.length] == char) {
+        Complete()
+    } else if (current.length < toMatch.length - 1 && toMatch[current.length] == char) {
+        Next
+    } else {
+        Cancel
+    }
 }
 
 //fun ignorePrefix(prefix: Pattern, pattern: Pattern, stop: Pattern? = null) = Pattern { input ->  //TODO add break pattern

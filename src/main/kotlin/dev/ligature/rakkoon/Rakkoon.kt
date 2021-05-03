@@ -12,7 +12,7 @@ data class Complete(val backtrack: Int = 0): NibState()
 object Next: NibState()
 
 fun interface Nibbler {
-    fun taste(char: Char?): NibState
+    fun taste(char: Char?, current: String): NibState
 }
 
 data class Match(val value: String, val range: IntRange)
@@ -22,24 +22,28 @@ class Rakkoon(private var input: CharSequence) {
 
     fun nibble(nibbler: Nibbler): Option<Match> {
         val start = offset
+        val currentState = StringBuilder()
         while(offset < input.length) {
-            when (val res = nibbler.taste(input[offset])) {
+            when (val res = nibbler.taste(input[offset], currentState.toString())) {
                 is Cancel -> {
                     offset = start
+                    currentState.clear()
                     return none()
                 }
                 is Complete -> {
                     offset++
                     offset -= res.backtrack
                     val finalChar = offset
+                    currentState.clear()
                     return Some(Match(input.substring(start, finalChar), IntRange(start, finalChar)))
                 }
                 is Next -> {
+                    currentState.append(input[offset])
                     offset++
                 }
             }
         }
-        return when (val finalRes = nibbler.taste(null)) {
+        return when (val finalRes = nibbler.taste(null, currentState.toString())) {
             is Cancel, Next -> {
                 offset = start
                 none()
@@ -49,6 +53,23 @@ class Rakkoon(private var input: CharSequence) {
                 Some(Match(input.substring(start, offset), IntRange(start, offset)))
             }
         }
+    }
+
+    fun nibble(vararg nibblers: Nibbler): Option<List<Match>> {
+        val resultList = mutableListOf<Match>()
+        val start = offset
+        for (nibbler in nibblers) {
+            when (val res = nibble(nibbler)) {
+                is None -> {
+                    offset = start
+                    return none()
+                }
+                is Some -> {
+                    resultList.add(res.value)
+                }
+            }
+        }
+        return Some(resultList)
     }
 
     fun currentOffset(): Int = offset

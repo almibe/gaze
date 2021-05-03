@@ -46,12 +46,52 @@ class StringPatternSpec : FunSpec() {
             res shouldBe listOf(5,5,5,5,5)
         }
 
-        test("hello work test") {
+        test("hello world test") {
             val rakkoon = Rakkoon("hello world")
-            rakkoon.nibble(helloNibbler).map { it.value }.shouldBe(Some("hello"))
-            rakkoon.nibble(spaceNibbler).map { it.value }.shouldBe(Some(" "))
-            rakkoon.nibble(worldNibbler).map { it.value }.shouldBe(Some("world"))
+            rakkoon.nibble(helloNibbler).shouldBe(Some(Match("hello", IntRange(0,5))))
+            rakkoon.nibble(spaceNibbler).shouldBe(Some(Match(" ", IntRange(5,6))))
+            rakkoon.nibble(worldNibbler).shouldBe(Some(Match("world", IntRange(6,11))))
             rakkoon.isComplete().shouldBe(true)
+        }
+
+        test("hello5world test") {
+            val rakkoon = Rakkoon("hello5world")
+            rakkoon.nibble(helloNibbler).shouldBe(Some(Match("hello", IntRange(0,5))))
+            rakkoon.nibble(fiveNibbler).shouldBe(Some(Match("5", IntRange(5,6))))
+            rakkoon.nibble(worldNibbler).shouldBe(Some(Match("world", IntRange(6,11))))
+            rakkoon.isComplete().shouldBe(true)
+        }
+
+        test("simple testing vararg overload of nibble") {
+            val rakkoon = Rakkoon("55")
+            rakkoon.nibble(fiveNibbler, fiveNibbler).shouldBe(Some(listOf(
+                Match("5", IntRange(0,1)),
+                Match("5", IntRange(1,2))
+            )))
+            rakkoon.isComplete().shouldBe(true)
+        }
+
+        test("testing vararg overload of nibble") {
+            val rakkoon = Rakkoon("5hello5")
+            rakkoon.nibble(fiveNibbler, helloNibbler, fiveNibbler).shouldBe(Some(listOf(
+                Match("5", IntRange(0,1)),
+                Match("hello", IntRange(1,6)),
+                Match("5", IntRange(6,7))
+            )))
+            rakkoon.isComplete().shouldBe(true)
+        }
+
+        test("make sure all varargs pass when using overload") {
+            val rakkoon = Rakkoon("555hello")
+            val expectNone = rakkoon.nibble(fiveNibbler, fiveNibbler, helloNibbler)
+            val expectResult = rakkoon.nibble(fiveNibbler, fiveNibbler, fiveNibbler, helloNibbler)
+            expectNone.shouldBe(none())
+            expectResult.shouldBe(Some(listOf(
+                Match("5", IntRange(0,1)),
+                Match("5", IntRange(1,2)),
+                Match("5", IntRange(2,3)),
+                Match("hello", IntRange(3,8))
+            )))
         }
     }
 }
