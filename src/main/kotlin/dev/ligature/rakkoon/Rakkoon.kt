@@ -6,33 +6,56 @@ package dev.ligature.rakkoon
 
 import arrow.core.*
 
-data class Rule<T>(val pattern: Pattern, val action: Action<T>)
-data class MatchInfo(val match: IntRange, val endChar: Int)
+sealed class NibState
+object Cancel: NibState()
+data class Complete(val backtrack: Int = 0): NibState()
+object Next: NibState()
 
-sealed class RakkoonError
-data class NoMatch(val charOffset: Int): RakkoonError()
-data class ActionError(val message: String, val charOffset: Int): RakkoonError()
+fun interface Nibbler {
+    fun taste(char: Char?): NibState
+}
+
+data class Match(val value: String, val range: IntRange)
 
 class Rakkoon(private var input: CharSequence) {
     private var offset = 0
 
-    fun <T>bite(rule: Rule<T>): Either<RakkoonError, T> {
-        val matchInfo = rule.pattern.matches(input)
-        return if (!isComplete() && matchInfo is Some) {
-            val sub = input.substring(matchInfo.value.match.first, matchInfo.value.match.last)
-            offset += matchInfo.value.endChar
-            input = input.subSequence(matchInfo.value.endChar, input.length)
-            rule.action.action(sub)
-        } else {
-            Either.Left(NoMatch(offset))
+    fun nibble(nibbler: Nibbler): Option<Match> {
+        val start = offset
+        while(offset < input.length) {
+            when (val res = nibbler.taste(input[offset])) {
+                is Cancel -> {
+                    offset = start
+                    return none()
+                }
+                is Complete -> {
+                    offset++
+                    offset -= res.backtrack
+                    val finalChar = offset
+                    return Some(Match(input.substring(start, finalChar), IntRange(start, finalChar)))
+                }
+                is Next -> {
+                    offset++
+                }
+            }
+        }
+        return when (val finalRes = nibbler.taste(null)) {
+            is Cancel, Next -> {
+                offset = start
+                none()
+            }
+            is Complete -> {
+                offset -= finalRes.backtrack
+                Some(Match(input.substring(start, offset), IntRange(start, offset)))
+            }
         }
     }
 
     fun currentOffset(): Int = offset
 
-    fun remainingText(): String = input.toString()
+    fun remainingText(): String = input.substring(offset)
 
     fun isComplete(): Boolean {
-        return input.isEmpty()
+        return input.length <= offset
     }
 }

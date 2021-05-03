@@ -9,28 +9,28 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 
-private val fiveRule = Rule(stringPattern("5"), toIntAction)
-private val helloRule = Rule(stringPattern("hello"), valueAction)
-private val spaceRule = Rule(stringPattern(" "), ignoreAction)
-private val worldRule = Rule(stringPattern("world"), valueAction)
+private val fiveNibbler = stringNibbler("5")
+private val helloNibbler = stringNibbler("hello")
+private val spaceNibbler = stringNibbler(" ")
+private val worldNibbler = stringNibbler("world")
 
 class StringPatternSpec : FunSpec() {
     init {
         test("empty input") {
             val rakkoon = Rakkoon("")
-            rakkoon.bite(fiveRule).shouldBeInstanceOf<Either.Left<RakkoonError>>()
+            rakkoon.nibble(fiveNibbler).shouldBeInstanceOf<None>()
             rakkoon.isComplete().shouldBe(true)
         }
 
         test("single 5 input") {
             val rakkoon = Rakkoon("5")
-            rakkoon.bite(fiveRule).shouldBe(Either.Right(5))
+            rakkoon.nibble(fiveNibbler).shouldBe(Some(Match("5", IntRange(0,1))))
             rakkoon.isComplete().shouldBe(true)
         }
 
         test("single 4 input") {
             val rakkoon = Rakkoon("4")
-            rakkoon.bite(fiveRule).shouldBeInstanceOf<Either.Left<RakkoonError>>()
+            rakkoon.nibble(fiveNibbler).shouldBeInstanceOf<None>()
             rakkoon.isComplete().shouldBe(false)
         }
 
@@ -38,16 +38,19 @@ class StringPatternSpec : FunSpec() {
             val rakkoon = Rakkoon("55555")
             val res = mutableListOf<Int>()
             while(!rakkoon.isComplete()) {
-                res.add(rakkoon.bite(fiveRule).getOrElse { TODO() })
+                val nres = rakkoon.nibble(fiveNibbler)
+                if (nres.isNotEmpty()) {
+                    res.add((nres as Some).value.value.toInt())
+                }
             }
             res shouldBe listOf(5,5,5,5,5)
         }
 
         test("hello work test") {
             val rakkoon = Rakkoon("hello world")
-            rakkoon.bite(helloRule).shouldBe(Either.Right("hello"))
-            rakkoon.bite(spaceRule).shouldBe(Either.Right(Unit))
-            rakkoon.bite(worldRule).shouldBe(Either.Right("world"))
+            rakkoon.nibble(helloNibbler).map { it.value }.shouldBe(Some("hello"))
+            rakkoon.nibble(spaceNibbler).map { it.value }.shouldBe(Some(" "))
+            rakkoon.nibble(worldNibbler).map { it.value }.shouldBe(Some("world"))
             rakkoon.isComplete().shouldBe(true)
         }
     }
