@@ -20,6 +20,10 @@ data class Match(val value: String, val range: IntRange)
 class Rakkoon(private var input: CharSequence) {
     private var offset = 0
 
+    fun peek(): Char? =
+        if (offset < input.length) input[offset]
+        else null
+
     fun nibble(nibbler: Nibbler): Option<Match> {
         val start = offset
         val currentState = StringBuilder()
