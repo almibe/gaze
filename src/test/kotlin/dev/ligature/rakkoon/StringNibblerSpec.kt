@@ -14,7 +14,7 @@ private val helloNibbler = stringNibbler("hello")
 private val spaceNibbler = stringNibbler(" ")
 private val worldNibbler = stringNibbler("world")
 
-class StringPatternSpec : FunSpec() {
+class StringNibblerSpec : FunSpec() {
     init {
         test("empty input") {
             val rakkoon = Rakkoon("")

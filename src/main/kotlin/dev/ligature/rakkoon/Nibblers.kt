@@ -4,6 +4,9 @@
 
 package dev.ligature.rakkoon
 
+/**
+ * stringNibbler matches a given String entirely
+ */
 fun stringNibbler(toMatch: String) = Nibbler { char, current ->
     if (current.length == toMatch.length - 1 && toMatch[current.length] == char) {
         Complete()
@@ -14,88 +17,44 @@ fun stringNibbler(toMatch: String) = Nibbler { char, current ->
     }
 }
 
-//fun ignorePrefix(prefix: Pattern, pattern: Pattern, stop: Pattern? = null) = Pattern { input ->  //TODO add break pattern
-//    val prefixRes = prefix.matches(input)
-//    if (prefixRes.isEmpty()) {
-//        pattern.matches(input)
-//    } else {
-//        val offset = prefixRes.getOrElse { TODO() }.endChar
-//        val newInput = input.drop(offset)
-//        when (val matchRes = pattern.matches(newInput)) {
-//            is None -> none()
-//            is Some -> Some(MatchInfo(IntRange(offset, offset + matchRes.value.endChar), offset + matchRes.value.endChar))
-//        }
-//    }
-//}
-//
-//fun ignoreSuffix(suffix: Pattern, pattern: Pattern) = Pattern { input ->
-//    val patternRes = pattern.matches(input)
-//    if (patternRes.isEmpty()) {
-//        none()
-//    } else {
-//        val offset = patternRes.getOrElse { TODO() }.endChar
-//        val newInput = input.drop(offset)
-//        when (val suffixRes = suffix.matches(newInput)) {
-//            is None -> patternRes
-//            is Some -> Some(MatchInfo(IntRange(0, offset), offset + suffixRes.value.endChar))
-//        }
-//    }
-//}
-//
-//fun ignoreSurrounding(ignore: Pattern, pattern: Pattern) = Pattern { input ->
-//    val ignorePrefixRes = ignorePrefix(ignore, pattern).matches(input)
-//    if (ignorePrefixRes.isEmpty()) {
-//        none()
-//    } else {
-//        val prefixMatchInfo = ignorePrefixRes.getOrElse { TODO() }
-//        val newInput = input.subSequence(0, prefixMatchInfo.endChar)
-//        val suffixMatch = ignore.matches(newInput)
-//        if (suffixMatch.isEmpty()) {
-//            ignorePrefixRes
-//        } else {
-//            val suffixMatchInfo = suffixMatch.getOrElse { TODO() }
-//            Some(MatchInfo(prefixMatchInfo.match, prefixMatchInfo.endChar + suffixMatchInfo.endChar + 1))
-//        }
-//    }
-//}
-//
-//fun anyPattern(vararg patterns: Pattern) = Pattern { input ->
-//    var res: Option<MatchInfo> = none()
-//    for(pattern in patterns) {
-//        res = pattern.matches(input)
-//        if (res.isNotEmpty()) {
-//            break
-//        }
-//    }
-//    res
-//}
-//
-//fun regexPattern(pattern: Regex) = Pattern { input ->
-//    val matchRes = pattern.find(input)
-//    if (matchRes != null && matchRes.range.first == 0) {
-//        Some(MatchInfo(IntRange(0, matchRes.range.last + 1), matchRes.range.last + 1))
-//    } else {
-//        none()
-//    }
-//}
-//
-//fun rangePattern(vararg ranges: CharRange) = Pattern { input ->
-//    fun rangeMatches(char: Char): Boolean {
-//        ranges.forEach {
-//            if (it.contains(char)) {
-//                return true
-//            }
-//        }
-//        return false
-//    }
-//
-//    var length = 0
-//    while (input.length > length && rangeMatches(input[length])) {
-//        length++
-//    }
-//    if (length > 0) {
-//        Some(MatchInfo(IntRange(0, length), length))
-//    } else {
-//        none()
-//    }
-//}
+/**
+ * rangeNibbler matches characters that exist within a given set of CharRanges
+ */
+fun rangeNibbler(vararg ranges: CharRange) = Nibbler { char, current ->
+    if (char == null) {
+        if (current.isEmpty()) Cancel
+        else Complete()
+    }
+    var match = false
+    ranges.forEach check@{
+        if (it.contains(char)) {
+            match = true
+            return@check
+        }
+    }
+    if (match) {
+        Next
+    } else {
+        if (current.isEmpty()) {
+            Cancel
+        } else {
+            Complete(1)
+        }
+    }
+}
+
+/**
+ * predicateNibbler is helper that checks a single character against a given predicate
+ */
+fun predicateNibbler(fn: (Char?) -> Boolean) = Nibbler { char, current ->
+    println("$char -- $current")
+    if (char == null) {
+        if (current.isEmpty()) Cancel
+        else Complete()
+    }
+    else if (fn(char)) Next
+    else {
+        if (current.isEmpty()) Cancel
+        else Complete(1)
+    }
+}
