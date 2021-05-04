@@ -9,89 +9,58 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 
-private val fiveNibbler = stringNibbler("5")
-private val helloNibbler = stringNibbler("hello")
-private val spaceNibbler = stringNibbler(" ")
-private val worldNibbler = stringNibbler("world")
+private val fiveNibbler = rangeNibbler('5'..'5')
+private val digitNibbler = rangeNibbler('0'..'9')
+private val alphaNibbler = rangeNibbler('a'..'c', 'x'..'z')
 
 class RangeNibblerSpec : FunSpec() {
     init {
-//        test("empty input") {
-//            val rakkoon = Rakkoon("")
-//            rakkoon.nibble(fiveNibbler).shouldBeInstanceOf<None>()
-//            rakkoon.isComplete().shouldBe(true)
-//        }
-//
-//        test("single 5 input") {
-//            val rakkoon = Rakkoon("5")
-//            rakkoon.nibble(fiveNibbler).shouldBe(Some(Match("5", IntRange(0,1))))
-//            rakkoon.isComplete().shouldBe(true)
-//        }
-//
-//        test("single 4 input") {
-//            val rakkoon = Rakkoon("4")
-//            rakkoon.nibble(fiveNibbler).shouldBeInstanceOf<None>()
-//            rakkoon.isComplete().shouldBe(false)
-//        }
-//
-//        test ("multiple 5s input") {
-//            val rakkoon = Rakkoon("55555")
-//            val res = mutableListOf<Int>()
-//            while(!rakkoon.isComplete()) {
-//                val nres = rakkoon.nibble(fiveNibbler)
-//                if (nres.isNotEmpty()) {
-//                    res.add((nres as Some).value.value.toInt())
-//                }
-//            }
-//            res shouldBe listOf(5,5,5,5,5)
-//        }
-//
-//        test("hello world test") {
-//            val rakkoon = Rakkoon("hello world")
-//            rakkoon.nibble(helloNibbler).shouldBe(Some(Match("hello", IntRange(0,5))))
-//            rakkoon.nibble(spaceNibbler).shouldBe(Some(Match(" ", IntRange(5,6))))
-//            rakkoon.nibble(worldNibbler).shouldBe(Some(Match("world", IntRange(6,11))))
-//            rakkoon.isComplete().shouldBe(true)
-//        }
-//
-//        test("hello5world test") {
-//            val rakkoon = Rakkoon("hello5world")
-//            rakkoon.nibble(helloNibbler).shouldBe(Some(Match("hello", IntRange(0,5))))
-//            rakkoon.nibble(fiveNibbler).shouldBe(Some(Match("5", IntRange(5,6))))
-//            rakkoon.nibble(worldNibbler).shouldBe(Some(Match("world", IntRange(6,11))))
-//            rakkoon.isComplete().shouldBe(true)
-//        }
-//
-//        test("simple testing vararg overload of nibble") {
-//            val rakkoon = Rakkoon("55")
-//            rakkoon.nibble(fiveNibbler, fiveNibbler).shouldBe(Some(listOf(
-//                Match("5", IntRange(0,1)),
-//                Match("5", IntRange(1,2))
-//            )))
-//            rakkoon.isComplete().shouldBe(true)
-//        }
-//
-//        test("testing vararg overload of nibble") {
-//            val rakkoon = Rakkoon("5hello5")
-//            rakkoon.nibble(fiveNibbler, helloNibbler, fiveNibbler).shouldBe(Some(listOf(
-//                Match("5", IntRange(0,1)),
-//                Match("hello", IntRange(1,6)),
-//                Match("5", IntRange(6,7))
-//            )))
-//            rakkoon.isComplete().shouldBe(true)
-//        }
-//
-//        test("make sure all varargs pass when using overload") {
-//            val rakkoon = Rakkoon("555hello")
-//            val expectNone = rakkoon.nibble(fiveNibbler, fiveNibbler, helloNibbler)
-//            val expectResult = rakkoon.nibble(fiveNibbler, fiveNibbler, fiveNibbler, helloNibbler)
-//            expectNone.shouldBe(none())
-//            expectResult.shouldBe(Some(listOf(
-//                Match("5", IntRange(0,1)),
-//                Match("5", IntRange(1,2)),
-//                Match("5", IntRange(2,3)),
-//                Match("hello", IntRange(3,8))
-//            )))
-//        }
+        test("empty input") {
+            val rakkoon = Rakkoon("")
+            rakkoon.nibble(fiveNibbler).shouldBeInstanceOf<None>()
+            rakkoon.nibble(digitNibbler).shouldBeInstanceOf<None>()
+            rakkoon.nibble(alphaNibbler).shouldBeInstanceOf<None>()
+            rakkoon.isComplete().shouldBe(true)
+        }
+
+        test("single 5 input") {
+            val rakkoon = Rakkoon("5")
+            rakkoon.nibble(fiveNibbler).shouldBe(Some(Match("5", IntRange(0,1))))
+            rakkoon.isComplete().shouldBe(true)
+        }
+
+        test("single 4 input") {
+            val rakkoon = Rakkoon("4")
+            rakkoon.nibble(fiveNibbler).shouldBeInstanceOf<None>()
+            rakkoon.isComplete().shouldBe(false)
+        }
+
+        test ("multiple 5s input") {
+            val rakkoon = Rakkoon("55555")
+            val res = rakkoon.nibble(fiveNibbler)
+            res shouldBe Some(Match("55555", IntRange(0,5)))
+        }
+
+        test ("digit input") {
+            val rakkoon = Rakkoon("005676356234534542100000")
+            val res = rakkoon.nibble(digitNibbler)
+            res shouldBe Some(Match("005676356234534542100000", IntRange(0,24)))
+        }
+
+        test("test alpha input") {
+            val rakkoon = Rakkoon("abcyyyycccaaazzzz")
+            rakkoon.nibble(alphaNibbler).shouldBe(Some(Match("abcyyyycccaaazzzz", IntRange(0, 17))))
+            rakkoon.isComplete().shouldBe(true)
+        }
+
+        test("simple testing vararg overload of nibble") {
+            val rakkoon = Rakkoon("abc456zxya")
+            rakkoon.nibble(alphaNibbler, digitNibbler, alphaNibbler).shouldBe(Some(listOf(
+                Match("abc", IntRange(0,3)),
+                Match("456", IntRange(3,6)),
+                Match("zxya", IntRange(6,10))
+            )))
+            rakkoon.isComplete().shouldBe(true)
+        }
     }
 }
