@@ -40,6 +40,11 @@ class Rakkoon(private var input: CharSequence): LookAhead {
         if (offset + distance.toInt() < input.length) input[offset + distance.toInt()]
         else null
 
+    @OptIn(ExperimentalUnsignedTypes::class)
+    fun bite(distance: UInt) {
+        offset += distance.toInt()
+    }
+
     fun nibble(nibbler: Nibbler): Option<Match> {
         val start = offset
         while(offset < input.length) {
