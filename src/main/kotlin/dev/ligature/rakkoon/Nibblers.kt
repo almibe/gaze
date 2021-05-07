@@ -26,6 +26,33 @@ fun stringNibbler(toMatch: String) = Nibbler { lookAhead ->
 }
 
 /**
+ * charNibbler matches input against the passed characters
+ */
+@OptIn(ExperimentalUnsignedTypes::class)
+fun charNibbler(vararg chars: Char) = Nibbler { lookAhead ->
+    var offset = 0U
+    while (lookAhead.peek(offset) != null) {
+        var match = false
+        chars.forEach check@{
+            if (it == lookAhead.peek(offset)) {
+                match = true
+                return@check
+            }
+        }
+        if (!match) {
+            break
+        } else {
+            offset++
+        }
+    }
+    if (offset == 0U) {
+        Cancel
+    } else {
+        Complete(offset.toInt())
+    }
+}
+
+/**
  * rangeNibbler matches characters that exist within a given set of CharRanges
  */
 @OptIn(ExperimentalUnsignedTypes::class)
