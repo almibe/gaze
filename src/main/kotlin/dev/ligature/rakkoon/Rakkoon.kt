@@ -21,24 +21,13 @@ object Cancel: NibState()
  */
 data class Complete(val adjust: Int = 0): NibState()
 
-/**
- * The Next state implies that the text so far has passed the taste test and a new character is being requested.
- */
-object Next: NibState()
-
-/**
- * The NextSkip state is similar to Next but accepts a UInt that allows you to skip multiple characters in the case
- * that look ahead was used.
- */
-data class NextSkip @OptIn(ExperimentalUnsignedTypes::class) constructor(val skip: UInt = 1U): NibState()
-
 fun interface Nibbler {
-    fun taste(char: Char?, lookAhead: LookAhead): NibState
+    fun taste(lookAhead: LookAhead): NibState
 }
 
 interface LookAhead {
     @OptIn(ExperimentalUnsignedTypes::class)
-    fun peek(distance: UInt = 1U): Char?
+    fun peek(distance: UInt = 0U): Char?
 }
 
 data class Match(val value: String, val range: IntRange)
@@ -48,30 +37,26 @@ class Rakkoon(private var input: CharSequence): LookAhead {
 
     @OptIn(ExperimentalUnsignedTypes::class)
     override fun peek(distance: UInt): Char? =
-        if (offset + distance.toInt() - 1 < input.length) input[offset + distance.toInt() - 1]
+        if (offset + distance.toInt() < input.length) input[offset + distance.toInt()]
         else null
 
     fun nibble(nibbler: Nibbler): Option<Match> {
         val start = offset
         while(offset < input.length) {
-            when (val res = nibbler.taste(input[offset], this)) {
+            when (val res = nibbler.taste(this)) {
                 is Cancel -> {
                     offset = start
                     return none()
                 }
                 is Complete -> {
-                    offset++
                     offset += res.adjust
                     val finalChar = offset
                     return Some(Match(input.substring(start, finalChar), IntRange(start, finalChar)))
                 }
-                is Next -> {
-                    offset++
-                }
             }
         }
-        return when (val finalRes = nibbler.taste(null, this)) {
-            is Cancel, is Next, is NextSkip -> {
+        return when (val finalRes = nibbler.taste(this)) {
+            is Cancel  -> {
                 offset = start
                 none()
             }
