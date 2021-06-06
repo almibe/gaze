@@ -47,27 +47,15 @@ class Rakkoon(private var input: CharSequence): LookAhead {
 
     fun nibble(nibbler: Nibbler): Option<Match> {
         val start = offset
-        while(offset < input.length) {
-            when (val res = nibbler.taste(this)) {
-                is Cancel -> {
-                    offset = start
-                    return none()
-                }
-                is Complete -> {
-                    offset += res.adjust
-                    val finalChar = offset
-                    return Some(Match(input.substring(start, finalChar), IntRange(start, finalChar)))
-                }
-            }
-        }
-        return when (val finalRes = nibbler.taste(this)) {
-            is Cancel  -> {
+        return when (val res = nibbler.taste(this)) {
+            is Cancel -> {
                 offset = start
                 none()
             }
             is Complete -> {
-                offset += finalRes.adjust
-                Some(Match(input.substring(start, offset), IntRange(start, offset)))
+                offset += res.adjust
+                val finalChar = offset
+                Some(Match(input.substring(start, finalChar), IntRange(start, finalChar)))
             }
         }
     }
