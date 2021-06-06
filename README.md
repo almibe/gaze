@@ -1,5 +1,5 @@
-# rakkoon
-Rakkoon is a small utility library with the goal of making it easier to scan/lex Strings in Kotlin.
+# raccoon
+Raccoon is a small utility library with the goal of making it easier to scan/lex Strings in Scala.
 
 It's experimental at the moment and not optimized at all, so you can play around with it, but don't expect much.
 
