@@ -4,29 +4,26 @@
 
 package dev.ligature.raccoon
 
-import arrow.core.*
+//sealed class NibState
+//
+///**
+// * The Cancel state means that this Nibbler didn't match and Rakkoon should jump back to its position before
+// * starting this Nibbler.
+// * The nibble method will also return None.
+// */
+//object Cancel: NibState()
+//
+///**
+// * The Complete state means that this Nibbler completed and Rakkoon should adjust its offset based on the adjust param.
+// * A Some(Match) is returned by the nibble method.
+// */
+//data class Complete(val adjust: Int = 0): NibState()
 
-sealed class NibState
-
-/**
- * The Cancel state means that this Nibbler didn't match and Rakkoon should jump back to its position before
- * starting this Nibbler.
- * The nibble method will also return None.
- */
-object Cancel: NibState()
-
-/**
- * The Complete state means that this Nibbler completed and Rakkoon should adjust its offset based on the adjust param.
- * A Some(Match) is returned by the nibble method.
- */
-data class Complete(val adjust: Int = 0): NibState()
-
-fun interface Nibbler {
-    fun taste(lookAhead: LookAhead): NibState
+trait Nibbler {
+    def taste(lookAhead: LookAhead): Either[]
 }
 
-interface LookAhead {
-    @OptIn(ExperimentalUnsignedTypes::class)
+trait LookAhead {
     fun peek(distance: UInt = 0U): Char?
 }
 
