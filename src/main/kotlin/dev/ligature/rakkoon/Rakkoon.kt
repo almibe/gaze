@@ -54,8 +54,7 @@ class Rakkoon(private var input: CharSequence): LookAhead {
             }
             is Complete -> {
                 offset += res.adjust
-                val finalChar = offset
-                Some(Match(input.substring(start, finalChar), IntRange(start, finalChar)))
+                Some(Match(input.substring(start, offset), IntRange(start, offset)))
             }
         }
     }
