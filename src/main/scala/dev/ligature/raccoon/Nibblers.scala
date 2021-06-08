@@ -4,97 +4,90 @@
 
 package dev.ligature.raccoon
 
-/**
- * stringNibbler matches a given String entirely
- */
-@OptIn(ExperimentalUnsignedTypes::class)
-fun stringNibbler(toMatch: String) = Nibbler { lookAhead ->
-    var offset = 0U
-    var result: NibState? = null
-    while (offset.toInt() <= toMatch.length) {
-        if (offset.toInt() == toMatch.length - 1 && toMatch[offset.toInt()] == lookAhead.peek(offset)) {
-            result = Complete(offset.toInt() + 1)
-            break
-        } else if (offset.toInt() < toMatch.length && toMatch[offset.toInt()] == lookAhead.peek(offset)) {
-            offset++
-        } else {
-            result = Cancel
-            break
-        }
-    }
-    result ?: Cancel
-}
-
-/**
- * charNibbler matches input against the passed characters
- */
-@OptIn(ExperimentalUnsignedTypes::class)
-fun charNibbler(vararg chars: Char) = Nibbler { lookAhead ->
-    var offset = 0U
-    while (lookAhead.peek(offset) != null) {
-        var match = false
-        chars.forEach check@{
-            if (it == lookAhead.peek(offset)) {
-                match = true
-                return@check
-            }
-        }
-        if (!match) {
-            break
-        } else {
-            offset++
-        }
-    }
-    if (offset == 0U) {
-        Cancel
-    } else {
-        Complete(offset.toInt())
-    }
-}
-
-/**
- * rangeNibbler matches characters that exist within a given set of CharRanges
- */
-@OptIn(ExperimentalUnsignedTypes::class)
-fun rangeNibbler(vararg ranges: CharRange) = Nibbler { lookAhead ->
-    var offset = 0U
-    while (lookAhead.peek(offset) != null) {
-        var match = false
-        ranges.forEach check@{
-            if (it.contains(lookAhead.peek(offset))) {
-                match = true
-                return@check
-            }
-        }
-        if (!match) {
-            break
-        } else {
-            offset++
-        }
-    }
-    if (offset == 0U) {
-        Cancel
-    } else {
-        Complete(offset.toInt())
-    }
-}
-
-/**
- * predicateNibbler is helper that checks a single character against a given predicate
- */
-@OptIn(ExperimentalUnsignedTypes::class)
-fun predicateNibbler(fn: (Char?) -> Boolean) = Nibbler { lookAhead ->
-    var offset = 0U
-    while (lookAhead.peek(offset) != null) {
-        if (fn(lookAhead.peek(offset))) {
-            offset++
-        } else {
-            break
-        }
-    }
-    if (offset == 0U) {
-        Cancel
-    } else {
-        Complete(offset.toInt())
-    }
-}
+///**
+// * stringNibbler matches a given String entirely
+// */
+//def stringNibbler(toMatch: String) = Nibbler { lookAhead ->
+//    var offset = 0
+//    while (offset <= toMatch.length) {
+//        if (offset == toMatch.length - 1 && toMatch.charAt(offset) == lookAhead.peek(offset)) {
+//            return Complete(offset + 1)
+//        } else if (offset < toMatch.length && toMatch.charAt(offset) == lookAhead.peek(offset)) {
+//            offset += 1
+//        } else {
+//            return Cancel
+//        }
+//    }
+//    return Cancel
+//}
+//
+///**
+// * charNibbler matches input against the passed characters
+// */
+//def charNibbler(chars: Char*) = Nibbler { lookAhead ->
+//    var offset = 0
+//    while (lookAhead.peek(offset) != null) {
+//        var isMatch = false
+//        chars.forEach check@{
+//            if (it == lookAhead.peek(offset)) {
+//                isMatch = true
+//                return@check
+//            }
+//        }
+//        if (!isMatch) {
+//            break
+//        } else {
+//            offset += 1
+//        }
+//    }
+//    if (offset == 0) {
+//        Cancel
+//    } else {
+//        Complete(offset)
+//    }
+//}
+//
+///**
+// * rangeNibbler matches characters that exist within a given set of CharRanges
+// */
+//def rangeNibbler(ranges: NumericRange.Inclusive[Char]*) = Nibbler { lookAhead ->
+//    var offset = 0
+//    while (lookAhead.peek(offset) != null) {
+//        var isMatch = false
+//        ranges.forEach check@{
+//            if (it.contains(lookAhead.peek(offset))) {
+//                isMatch = true
+//                return@check
+//            }
+//        }
+//        if (!isMatch) {
+//            break
+//        } else {
+//            offset += 1
+//        }
+//    }
+//    if (offset == 0) {
+//        Cancel
+//    } else {
+//        Complete(offset)
+//    }
+//}
+//
+///**
+// * predicateNibbler is helper that checks a single character against a given predicate
+// */
+//def predicateNibbler(fn: (Char | null) -> Boolean) = Nibbler { lookAhead ->
+//    var offset = 0
+//    while (lookAhead.peek(offset) != null) {
+//        if (fn(lookAhead.peek(offset))) {
+//            offset += 1
+//        } else {
+//            break
+//        }
+//    }
+//    if (offset == 0) {
+//        Cancel
+//    } else {
+//        Complete(offset)
+//    }
+//}

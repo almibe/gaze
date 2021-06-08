@@ -4,80 +4,78 @@
 
 package dev.ligature.raccoon
 
-//sealed class NibState
-//
-///**
-// * The Cancel state means that this Nibbler didn't match and Rakkoon should jump back to its position before
-// * starting this Nibbler.
-// * The nibble method will also return None.
-// */
-//object Cancel: NibState()
-//
-///**
-// * The Complete state means that this Nibbler completed and Rakkoon should adjust its offset based on the adjust param.
-// * A Some(Match) is returned by the nibble method.
-// */
-//data class Complete(val adjust: Int = 0): NibState()
+import scala.collection.immutable.NumericRange
+
+sealed trait NibState
+/**
+ * The Cancel state means that this Nibbler didn't match and Rakkoon should jump back to its position before
+ * starting this Nibbler.
+ * The nibble method will also return None.
+ */
+case class Cancel() extends NibState
+/**
+ * The Complete state means that this Nibbler completed and Rakkoon should adjust its offset based on the adjust param.
+ * A Some(Match) is returned by the nibble method.
+ */
+case class Complete(adjust: Int = 0) extends NibState
 
 trait Nibbler {
-    def taste(lookAhead: LookAhead): Either[]
+  def taste(lookAhead: LookAhead): NibState
 }
 
 trait LookAhead {
-    fun peek(distance: UInt = 0U): Char?
+  def peek(distance: Int = 0): Char
 }
 
-data class Match(val value: String, val range: IntRange)
+case class Match(value: String, range: NumericRange[Int])
 
-class Rakkoon(private var input: CharSequence): LookAhead {
-    private var offset = 0
+class Raccoon(private var input: CharSequence) extends LookAhead {
+  private var offset = 0
 
-    @OptIn(ExperimentalUnsignedTypes::class)
-    override fun peek(distance: UInt): Char? =
-        if (offset + distance.toInt() < input.length) input[offset + distance.toInt()]
-        else null
+  override def peek(distance: Int): Option[Char] =
+    if (offset + distance < input.length) Some(input.charAt(offset + distance))
+    else None
 
-    @OptIn(ExperimentalUnsignedTypes::class)
-    fun bite(distance: UInt) {
-        offset += distance.toInt()
+  def bite(distance: Int) = {
+    offset = offset + distance
+  }
+
+  def nibble(nibbler: Nibbler): Option[Match] = {
+    val start = offset
+    val res = nibbler.taste(this)
+    res match {
+      case Cancel() => {
+        offset = start
+        None
+      }
+      case Complete(adjust) => {
+        offset = offset + adjust
+        Some(Match(input.substring(start, offset), start to offset))
+      }
     }
+  }
 
-    fun nibble(nibbler: Nibbler): Option<Match> {
-        val start = offset
-        return when (val res = nibbler.taste(this)) {
-            is Cancel -> {
-                offset = start
-                none()
-            }
-            is Complete -> {
-                offset += res.adjust
-                Some(Match(input.substring(start, offset), IntRange(start, offset)))
-            }
+  def nibble(nibblers: Nibbler*): Option[List[Match]] = {
+    val resultList: MutableList[Match] = MutableList[Match]()
+    val start = offset
+    for (nibbler <- nibblers) {
+      val res = nibble(nibbler)
+      res match {
+        case None => {
+          offset = start
+          return None
         }
-    }
-
-    fun nibble(vararg nibblers: Nibbler): Option<List<Match>> {
-        val resultList = mutableListOf<Match>()
-        val start = offset
-        for (nibbler in nibblers) {
-            when (val res = nibble(nibbler)) {
-                is None -> {
-                    offset = start
-                    return none()
-                }
-                is Some -> {
-                    resultList.add(res.value)
-                }
-            }
+        case Some => {
+          resultList.add(res.value)
         }
-        return Some(resultList)
+      }
     }
+    Some(resultList)
+  }
 
-    fun currentOffset(): Int = offset
+  def currentOffset(): Int = offset
 
-    fun remainingText(): String = input.substring(offset)
+  def remainingText(): String = input.substring(offset)
 
-    fun isComplete(): Boolean {
-        return input.length <= offset
-    }
+  def isComplete(): Boolean = input.length <= offset
 }
