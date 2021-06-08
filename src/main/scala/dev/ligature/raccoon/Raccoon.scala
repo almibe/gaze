@@ -5,6 +5,7 @@
 package dev.ligature.raccoon
 
 import scala.collection.immutable.NumericRange
+import scala.collection.mutable.ListBuffer
 
 sealed trait NibState
 /**
@@ -50,13 +51,13 @@ class Raccoon(private var input: CharSequence) extends LookAhead {
       }
       case Complete(adjust) => {
         offset = offset + adjust
-        Some(Match(input.substring(start, offset), start to offset))
+        Some(Match(input.subSequence(start, offset).toString, NumericRange.Inclusive(start, offset, 1)))
       }
     }
   }
 
   def nibble(nibblers: Nibbler*): Option[List[Match]] = {
-    val resultList: MutableList[Match] = MutableList[Match]()
+    val resultList: ListBuffer[Match] = ListBuffer[Match]()
     val start = offset
     for (nibbler <- nibblers) {
       val res = nibble(nibbler)
@@ -65,17 +66,17 @@ class Raccoon(private var input: CharSequence) extends LookAhead {
           offset = start
           return None
         }
-        case Some => {
-          resultList.add(res.value)
+        case Some(value) => {
+          resultList += value
         }
       }
     }
-    Some(resultList)
+    Some(resultList.toList)
   }
 
   def currentOffset(): Int = offset
 
-  def remainingText(): String = input.substring(offset)
+  def remainingText(): String = input.subSequence(offset, input.length()).toString
 
   def isComplete(): Boolean = input.length <= offset
 }
