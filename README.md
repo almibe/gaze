@@ -12,14 +12,15 @@ And instead of the normal murmur of citizens finishing their day before going ho
 
 As you stand in the darkness a small cloaked figure scurries towards you.
 You greet the creature with a handful of fruits and nuts that you pull from your pocket.
-They take your greeting into their paws and quickly devour.
+They take your greeting into their paws and quickly devour it.
 Looking down upon them, you see their eyes reflect the distant light, made even more noticeable behind their natural black mask.
 They look up to you after eating, swipe at their right whiskers twice, you nod, in a single motion they jump out of their cloak and join the gaze gathered behind you.
 
 You take one last moment to appreciate the irony of joining forces with one of nature's most chaotic forces to combat chaos.
 You draw in a deep breathe realizing that many mistakes will be made tonight.
 You raise your black, sleeved arm and point towards your home.
-You see the gaze rush around you and down the hill, and you follow behind.
+You feel the gaze rush around you and see them run down the hill.
+You follow behind.
 
 ## Introduction
 
