@@ -23,7 +23,7 @@ You see the gaze rush around you and down the hill, and you follow behind.
 
 ## Introduction
 
-Gaze is a small utility library with the goal of making it easier to scan/lex/parse text in Rust.
+Gaze is a small utility library with the goal of making it easier to process text in Rust.
 
 It's experimental at the moment and not optimized at all, so you can play around with it, but don't expect much.
 I'm not sure yet if this is even a good idea 🤷
