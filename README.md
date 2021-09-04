@@ -1,6 +1,6 @@
 # gaze
 
-<img alt="Logo of a raccoon staring" align="right" src="gazelogo.jpg">
+<img alt="Logo of a raccoon staring" align="right" src="gazelogo.jpg" width="400">
 
 ## Preface
 
