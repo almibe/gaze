@@ -1,8 +1,3 @@
+/target
+Cargo.lock
 .idea
-.vscode
-target/
-**/target/
-.bloop
-.bsp
-.metals
-**/metals.sbt
