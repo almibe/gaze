@@ -42,3 +42,5 @@ Currently, Gaze works with Rust's Iterator trait but support for Stream is also 
  * Encourage the use of Fn trait
  * Handle unicode well (thanks to unicode-segmentation)
  * Provide diagnostic information for support tools, error handling, and debugging
+
+Logo picture credit: https://unsplash.com/@marcus_d
