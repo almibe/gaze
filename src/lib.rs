@@ -2,6 +2,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+pub mod steps;
+
 /// The main struct for working with Gaze.
 pub struct Gaze<'a> {
     input: &'a str,
@@ -9,6 +11,11 @@ pub struct Gaze<'a> {
     line: usize,
     location_in_line: usize,
     save_point: Option<usize>,
+}
+
+#[derive(PartialEq,Debug)]
+pub enum GazeErr {
+    NoMatch
 }
 
 pub enum State {}
@@ -55,8 +62,18 @@ impl Gaze<'_> {
         }
     }
 
-    pub fn run<O, E>(step: impl Step<O, E>) -> State {
-        todo!()
+    pub fn run<O, E>(&mut self, step: impl Step<O, E>) -> Result<O, E> {
+        let res = step.attempt(self);
+        let start = self.offset;
+        match res {
+            Ok(_) => {
+                res
+            }
+            Err(_) => {
+                self.offset = start;
+                res
+            }
+        }
     }
 
     pub fn current_offset(&self) -> usize {
