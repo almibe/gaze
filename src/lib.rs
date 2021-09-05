@@ -2,8 +2,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::ops::Range;
-
 /// The main struct for working with Gaze.
 pub struct Gaze<'a> {
     input: &'a str,
@@ -13,24 +11,63 @@ pub struct Gaze<'a> {
     save_point: Option<usize>,
 }
 
-pub trait Transform<I,O> {
+pub enum State {}
+
+pub trait Transform<I, O> {
     fn transform(input: I) -> O;
 }
 
+pub trait Step<O, E> {
+    fn attempt(&self, gaze: &mut Gaze) -> Result<O, E>;
+}
+
 impl Gaze<'_> {
-    fn bite(&mut self, distance: usize) {
-        self.offset = self.offset + distance;
+    pub fn new(input: &str) -> Gaze {
+        Gaze {
+            input,
+            offset: 0,
+            line: 0,
+            location_in_line: 0,
+            save_point: None,
+        }
     }
 
-    fn current_offset(&self) -> usize {
+    /// Returns the next char, but doesn't affect the current Parser location.
+    /// Returns None if there is no more text.
+    pub fn peek(&self) -> Option<String> {
+        if self.is_complete() {
+            None
+        } else {
+            let x = self.input.as_bytes()[self.offset] as char; //TODO rewrite
+            Some(x.to_string())
+        }
+    }
+
+    /// Increases the current Parser location 1 space and returns the next char.
+    /// Returns None if there is no more text.
+    pub fn next(&mut self) -> Option<String> {
+        if self.input.len() <= self.offset {
+            None
+        } else {
+            let x = self.input.as_bytes()[self.offset] as char; //TODO rewrite
+            self.offset = self.offset + 1;
+            Some(x.to_string())
+        }
+    }
+
+    pub fn run<O, E>(step: impl Step<O, E>) -> State {
+        todo!()
+    }
+
+    pub fn current_offset(&self) -> usize {
         self.offset
     }
 
-    fn remaining_text(&self) -> String {
+    pub fn remaining_text(&self) -> String {
         self.input[self.offset..self.input.len()].to_string()
     }
 
-    fn is_complete(&self) -> bool {
+    pub fn is_complete(&self) -> bool {
         self.input.len() <= self.offset
     }
 }
