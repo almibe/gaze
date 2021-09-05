@@ -62,7 +62,7 @@ impl Gaze<'_> {
         }
     }
 
-    pub fn run<O, E>(&mut self, step: impl Step<O, E>) -> Result<O, E> {
+    pub fn run<O, E>(&mut self, step: &impl Step<O, E>) -> Result<O, E> {
         let res = step.attempt(self);
         let start = self.offset;
         match res {

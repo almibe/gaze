@@ -3,6 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use crate::{GazeErr, Step, Gaze};
+use std::collections::HashSet;
 
 pub struct StringMatch(pub String);
 
@@ -28,6 +29,31 @@ impl Step<String, GazeErr> for StringMatch {
                         } else {
                             return Err(GazeErr::NoMatch);
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// A Step that ignores all chars passed in.
+pub struct IgnoreAll(pub HashSet<char>);
+
+impl Step<(), GazeErr> for IgnoreAll {
+    fn attempt(&self, gaze: &mut Gaze) -> Result<(), GazeErr> {
+        //TODO this will need to be rewritten once handle Unicode better
+        loop {
+            let next_value = gaze.peek();
+            match next_value {
+                None => {
+                    return Ok(());
+                }
+                Some(c) => {
+                    let value = (*c.as_bytes().first().ok_or_else(|| GazeErr::NoMatch)?) as char;
+                    if self.0.contains(&value) {
+                        gaze.next();
+                    } else {
+                        return Ok(());
                     }
                 }
             }
