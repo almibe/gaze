@@ -5,9 +5,9 @@
 use crate::{GazeErr, Step, Gaze};
 use std::collections::HashSet;
 
-pub struct StringMatch(pub String);
+pub struct TakeString(pub String);
 
-impl Step<String, GazeErr> for StringMatch {
+impl Step<String, GazeErr> for TakeString {
     fn attempt(&self, gaze: &mut Gaze) -> Result<String, GazeErr> {
         //TODO this will need to be rewritten once handle Unicode better
         let mut current_pos = 0usize;
@@ -54,6 +54,61 @@ impl Step<(), GazeErr> for IgnoreAll {
                         gaze.next();
                     } else {
                         return Ok(());
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// A Step that takes values from the String until the predicate fails.
+pub struct TakeWhile<'a>(pub &'a dyn Fn(&char) -> bool);
+
+impl Step<String, GazeErr> for TakeWhile<'_> {
+    fn attempt(&self, gaze: &mut Gaze) -> Result<String, GazeErr> {
+        //TODO this will need to be rewritten once handle Unicode better
+        let mut res = String::new();
+        loop {
+            let next_value = gaze.peek();
+            match next_value {
+                None => {
+                    return Ok(res);
+                }
+                Some(c) => {
+                    let value = (*c.as_bytes().first().ok_or_else(|| GazeErr::NoMatch)?) as char;
+                    if self.0(&value) {
+                        res += &*c;
+                        gaze.next();
+                    } else {
+                        return Ok(res);
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// A Step that takes values from the String until the predicate passes.
+pub struct TakeUntil<'a>(pub &'a dyn Fn(&char) -> bool);
+
+impl Step<String, GazeErr> for TakeUntil<'_> {
+    fn attempt(&self, gaze: &mut Gaze) -> Result<String, GazeErr> {
+        //TODO this will need to be rewritten once handle Unicode better
+        //TODO also this should share code with TakeWhile
+        let mut res = String::new();
+        loop {
+            let next_value = gaze.peek();
+            match next_value {
+                None => {
+                    return Ok(res);
+                }
+                Some(c) => {
+                    let value = (*c.as_bytes().first().ok_or_else(|| GazeErr::NoMatch)?) as char;
+                    if !self.0(&value) {
+                        res += &*c;
+                        gaze.next();
+                    } else {
+                        return Ok(res);
                     }
                 }
             }
