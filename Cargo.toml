@@ -11,3 +11,4 @@ repository = "https://github.com/almibe/gaze/"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+unicode-segmentation = "1.8.0"

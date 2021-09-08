@@ -2,14 +2,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use unicode_segmentation::{UnicodeSegmentation, GraphemeIndices};
+
 pub mod steps;
 
 /// The main struct for working with Gaze.
 pub struct Gaze<'a> {
     input: &'a str,
-    offset: usize,
-    line: usize,
-    location_in_line: usize,
+    grapheme_indices: GraphemeIndices<'a>,
+    offset: usize, //byte offset?
+    line: usize, //line number
+    location_in_line: usize, //grapheme offset of current line
     save_point: Option<usize>,
 }
 
@@ -18,20 +21,16 @@ pub enum GazeErr {
     NoMatch
 }
 
-pub enum State {}
-
-pub trait Transform<I, O> {
-    fn transform(input: I) -> O;
-}
-
 pub trait Step<O, E> {
     fn attempt(&self, gaze: &mut Gaze) -> Result<O, E>;
 }
 
 impl Gaze<'_> {
     pub fn new(input: &str) -> Gaze {
+        let mut grapheme_indices = input.grapheme_indices(true);
         Gaze {
             input,
+            grapheme_indices,
             offset: 0,
             line: 0,
             location_in_line: 0,
