@@ -36,7 +36,7 @@ The main idea is to treat processing text as a stream.
 Basically you create an initial instance of Gaze and then run multiple phases against it.
 Each phase can work with a different type, so you are most likely only using the Gaze type initially,
 but data from Gaze is likely passed throughout phases.
-I plan on eventually having Gaze work with Rust's Iterator trait, and support for Stream is also planned if this turns out to work well.
+Gaze implements Rust's Iterator trait, and support for Stream is also planned if this turns out to work well.
 
 ## Goals
 

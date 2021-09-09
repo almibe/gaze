@@ -48,8 +48,8 @@ fn handle_string_matcher() {
 fn handle_ignore_all() {
     let mut gaze = Gaze::new("   \t  this \tis some text \t ");
     let mut hs = HashSet::new();
-    hs.insert(' ');
-    hs.insert('\t');
+    hs.insert(" ");
+    hs.insert("\t");
     let ignore_all = IgnoreAll(hs);
     let res = gaze.run(&ignore_all);
     assert_eq!(res, Ok(()));

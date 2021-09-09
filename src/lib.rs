@@ -26,6 +26,22 @@ pub trait Step<O, E> {
     fn attempt(&self, gaze: &mut Gaze) -> Result<O, E>;
 }
 
+impl<'a> Iterator for Gaze<'a> {
+    type Item = &'a str;
+    
+    /// Increases the current Parser location 1 space and returns the next char.
+    /// Returns None if there is no more text.
+    fn next(&mut self) -> Option<&'a str> {
+        if self.graphemes.len() <= self.grapheme_offset {
+            None
+        } else {
+            let next = self.graphemes[self.grapheme_offset];
+            self.grapheme_offset += 1;
+            Some(next)
+        }
+    }
+}
+
 impl Gaze<'_> {
     pub fn new(input: &str) -> Gaze {
         let graphemes = input.graphemes(true).collect::<Vec<&str>>();
@@ -47,18 +63,6 @@ impl Gaze<'_> {
             None
         } else {
             Some(self.graphemes[self.grapheme_offset])
-        }
-    }
-
-    /// Increases the current Parser location 1 space and returns the next char.
-    /// Returns None if there is no more text.
-    pub fn next(&mut self) -> Option<&str> {
-        if self.graphemes.len() <= self.grapheme_offset {
-            None
-        } else {
-            let next = self.graphemes[self.grapheme_offset];
-            self.grapheme_offset += 1;
-            Some(next)
         }
     }
 
