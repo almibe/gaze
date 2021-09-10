@@ -2,8 +2,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use gaze::steps::{IgnoreAll, TakeString};
-use gaze::{Gaze, GazeErr, Step};
+use gaze::steps::{IgnoreAll, TakeAll, TakeFirst, TakeString};
+use gaze::{Gaze, GazeErr, Tokenizer};
 use std::collections::HashSet;
 
 #[test]
@@ -73,7 +73,7 @@ fn handle_ignore_all() {
 fn nested_steps() {
     struct Internal();
 
-    impl Step<String, GazeErr> for Internal {
+    impl Tokenizer<String> for Internal {
         fn attempt(&self, gaze: &mut Gaze) -> Result<String, GazeErr> {
             gaze.run(&TakeString::new("a"))?;
             gaze.run(&TakeString::new("b"))?;
@@ -92,4 +92,31 @@ fn nested_steps() {
     assert_eq!(gaze_fail.run(&step), Err(GazeErr::NoMatch));
     assert_eq!(gaze_fail.is_complete(), false);
     assert_eq!(gaze_fail.current_offset(), 0);
+}
+
+#[test]
+fn take_first() {
+    let mut gaze = Gaze::new("abbc");
+
+    let a = TakeString::new("a");
+    let b = TakeString::new("b");
+    let c = TakeString::new("c");
+    let take_first = TakeFirst(Box::new([&c, &b, &a]));
+
+    let res = gaze.run(&take_first);
+    assert_eq!(res, Ok("a".into()));
+}
+
+#[test]
+fn take_all() {
+    let mut gaze = Gaze::new("abbc");
+
+    let a = TakeString::new("a");
+    let b = TakeString::new("b");
+    let c = TakeString::new("c");
+    let take_all = TakeAll(Box::new([&a, &b, &b, &c]));
+
+    let res = gaze.run(&take_all);
+    let expect = vec!["a".into(), "b".into(), "b".into(), "c".into()].into_boxed_slice();
+    assert_eq!(res, Ok(expect));
 }

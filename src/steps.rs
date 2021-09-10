@@ -4,7 +4,7 @@
 
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::{Gaze, GazeErr, Step};
+use crate::{Gaze, Match, NoMatch, Tokenizer};
 use std::collections::HashSet;
 
 pub struct TakeString<'a> {
@@ -19,8 +19,8 @@ impl TakeString<'_> {
     }
 }
 
-impl Step<String, GazeErr> for TakeString<'_> {
-    fn attempt(&self, gaze: &mut Gaze) -> Result<String, GazeErr> {
+impl Tokenizer<String> for TakeString<'_> {
+    fn attempt(&self, gaze: &mut Gaze) -> Result<Match<T>, NoMatch> {
         let mut current_pos = 0usize;
         loop {
             if current_pos >= self.graphemes.len() {
@@ -29,14 +29,14 @@ impl Step<String, GazeErr> for TakeString<'_> {
                 let next_value = gaze.peek();
                 match next_value {
                     None => {
-                        return Err(GazeErr::NoMatch);
+                        return Err(NoMatch);
                     }
                     Some(c) => {
                         if self.graphemes[current_pos] == c {
                             gaze.next();
                             current_pos += 1;
                         } else {
-                            return Err(GazeErr::NoMatch);
+                            return Err(NoMatch);
                         }
                     }
                 }
@@ -48,7 +48,7 @@ impl Step<String, GazeErr> for TakeString<'_> {
 /// A Step that ignores all chars passed in.
 pub struct IgnoreAll<'a>(pub HashSet<&'a str>);
 
-impl Step<(), GazeErr> for IgnoreAll<'_> {
+impl Tokenizer<()> for IgnoreAll<'_> {
     fn attempt(&self, gaze: &mut Gaze) -> Result<(), GazeErr> {
         //TODO this will need to be rewritten once handle Unicode better
         loop {
@@ -72,7 +72,7 @@ impl Step<(), GazeErr> for IgnoreAll<'_> {
 /// A Step that takes values from the String until the predicate fails.
 pub struct TakeWhile<'a>(pub &'a dyn Fn(&str) -> bool);
 
-impl Step<String, GazeErr> for TakeWhile<'_> {
+impl Tokenizer<String> for TakeWhile<'_> {
     fn attempt(&self, gaze: &mut Gaze) -> Result<String, GazeErr> {
         //TODO this will need to be rewritten once handle Unicode better
         let mut res = String::new();
@@ -98,7 +98,7 @@ impl Step<String, GazeErr> for TakeWhile<'_> {
 /// A Step that takes values from the String until the predicate passes.
 pub struct TakeUntil<'a>(pub &'a dyn Fn(&str) -> bool);
 
-impl Step<String, GazeErr> for TakeUntil<'_> {
+impl Tokenizer<String> for TakeUntil<'_> {
     fn attempt(&self, gaze: &mut Gaze) -> Result<String, GazeErr> {
         //TODO this will need to be rewritten once handle Unicode better
         //TODO also this should share code with TakeWhile
@@ -119,5 +119,36 @@ impl Step<String, GazeErr> for TakeUntil<'_> {
                 }
             }
         }
+    }
+}
+
+pub struct TakeFirst<'a, T>(pub Box<[&'a dyn Tokenizer<T>]>);
+
+impl<T> Tokenizer<T> for TakeFirst<'_, T> {
+    fn attempt(&self, gaze: &mut Gaze) -> Result<T, GazeErr> {
+        for step in &*self.0 {
+            let res = gaze.run(*step);
+            match res {
+                Ok(_) => return res,
+                Err(_) => continue,
+            }
+        }
+        Err(GazeErr::NoMatch)
+    }
+}
+
+pub struct TakeAll<'a, T>(pub Box<[&'a dyn Tokenizer<T>]>);
+
+impl<T> Tokenizer<Box<[T]>> for TakeAll<'_, T> {
+    fn attempt(&self, gaze: &mut Gaze) -> Result<Box<[T]>, GazeErr> {
+        let mut res: Vec<T> = Vec::new();
+        for step in &*self.0 {
+            let r = gaze.run(*step);
+            match r {
+                Ok(r) => res.push(r),
+                Err(_) => return Err(GazeErr::NoMatch),
+            }
+        }
+        Ok(res.into_boxed_slice())
     }
 }

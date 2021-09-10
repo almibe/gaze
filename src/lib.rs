@@ -18,17 +18,25 @@ pub struct Gaze<'a> {
 }
 
 #[derive(PartialEq, Debug)]
-pub enum GazeErr {
-    NoMatch,
+pub struct Match<T>(T);
+
+#[derive(PartialEq, Debug)]
+pub struct NoMatch;
+
+pub struct GazeToken<'a> {
+    span: &'a str,
+    start: usize,
+    line: usize,
+    line_offset: usize,
 }
 
-pub trait Step<O, E> {
-    fn attempt(&self, gaze: &mut Gaze) -> Result<O, E>;
+pub trait Tokenizer<T> {
+    fn attempt(&self, gaze: &mut Gaze) -> Result<Match<T>, NoMatch>;
 }
 
 impl<'a> Iterator for Gaze<'a> {
     type Item = &'a str;
-    
+
     /// Increases the current Parser location 1 space and returns the next char.
     /// Returns None if there is no more text.
     fn next(&mut self) -> Option<&'a str> {
@@ -66,25 +74,50 @@ impl Gaze<'_> {
         }
     }
 
-    pub fn run<O, E>(&mut self, step: &impl Step<O, E>) -> Result<O, E> {
-        let start = self.grapheme_offset;
-        let res = step.attempt(self);
-        match res {
-            Ok(_) => res,
-            Err(_) => {
-                self.grapheme_offset = start;
-                res
+    /// Runs a vector of tokenizers against the current state.
+    /// Tokenizers are tested in the order given.
+    /// Results are in the order matched.
+    /// After each match the tokenizers are tested from the beginning with the new state.
+    /// Anytime all of the tokenizers fail to match the function returns the current vector of GazeTokens,
+    /// and the state of the Gaze instance remains where it is.
+    /// If no tokenizers match at all an empty vector is returned.
+    pub fn run<T>(&mut self, tokenizers: Vec<&dyn Tokenizer<T>>) -> Vec<GazeToken> {
+        let mut matches = Vec::new();
+        loop {
+            let mut match_in_this_loop = false;
+            let mut start_of_this_loop = self.grapheme_offset;
+            for tokenizer in tokenizers {
+                let res = tokenizer.attempt(self);
+                match res {
+                    Ok(_) => {
+                        //res
+                        matches.push(GazeToken { //TODO fix values
+                            span: "junk",
+                            start: 0,
+                            line: 0,
+                            line_offset: 0,
+                        });
+                        match_in_this_loop = true;
+                        break;
+                    },
+                    Err(_) => {
+                        //do nothing?
+                    }
+                }
+            }
+            if match_in_this_loop {
+                continue;
+            } else {
+                self.grapheme_offset = start_of_this_loop;
+                break;
             }
         }
+        matches
     }
 
     pub fn current_offset(&self) -> usize {
         self.grapheme_offset
     }
-
-    // pub fn remaining_text(&self) -> &str {
-    //     &self.input[self.offset..self.input.len()]
-    // }
 
     pub fn is_complete(&self) -> bool {
         self.graphemes.len() <= self.grapheme_offset
