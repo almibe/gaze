@@ -2,8 +2,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use gaze::steps::{TakeString};
-use gaze::{Gaze, Tokenizer};
+use gaze::steps::TakeString;
+use gaze::{Gaze, GazeToken, Tokenizer};
 use std::collections::HashSet;
 
 #[test]
@@ -28,20 +28,94 @@ fn handle_single_char_string() {
 
 #[test]
 fn handle_string_matcher() {
-    let mut gaze = Gaze::new("this is some text");
-    let res = gaze.run(&TakeString::new("this "));
-    assert_eq!(res, Ok("this ".into()));
-    assert_eq!(gaze.peek(), Some("i".into()));
-    assert_eq!(gaze.is_complete(), false);
-    let res = gaze.run(&TakeString::new("this "));
-    assert_eq!(res, Err(GazeErr::NoMatch));
-    assert_eq!(gaze.is_complete(), false);
-    let res = gaze.run(&TakeString::new("is some text"));
-    assert_eq!(res, Ok("is some text".into()));
-    assert_eq!(gaze.is_complete(), true);
-    let res = gaze.run(&TakeString::new("is some text"));
-    assert_eq!(res, Err(GazeErr::NoMatch));
-    assert_eq!(gaze.is_complete(), true);
+    #[derive(PartialEq, Debug, Clone, Copy)]
+    enum TokenType {
+        This,
+        WS,
+        Is,
+        Some,
+        Text,
+    }
+
+    let mut gaze = Gaze::new("this is some text  ");
+    let t1 = TakeString::new("this", TokenType::This);
+    let t2 = TakeString::new(" ", TokenType::WS);
+    let t3 = TakeString::new("is", TokenType::Is);
+    let t4 = TakeString::new("some", TokenType::Some);
+    let t5 = TakeString::new("text", TokenType::Text);
+
+    let tokenizers: Vec<&dyn Tokenizer<TokenType>> = vec![&t1, &t2, &t3, &t4, &t5];
+    let res = gaze.run(&tokenizers);
+    //    assert_eq!(gaze.peek(), None);
+    //    assert_eq!(gaze.is_complete(), true);
+    assert_eq!(
+        res,
+        vec![
+            GazeToken {
+                span: "this",
+                // line: 0,
+                // line_offset: 0,
+                grapheme_offset: 0,
+                token_type: TokenType::This
+            },
+            GazeToken {
+                span: " ",
+                // line: 0,
+                // line_offset: 0,
+                grapheme_offset: 4,
+                token_type: TokenType::WS
+            },
+            GazeToken {
+                span: "is",
+                // line: 0,
+                // line_offset: 0,
+                grapheme_offset: 5,
+                token_type: TokenType::Is
+            },
+            GazeToken {
+                span: " ",
+                // line: 0,
+                // line_offset: 0,
+                grapheme_offset: 7,
+                token_type: TokenType::WS
+            },
+            GazeToken {
+                span: "some",
+                // line: 0,
+                // line_offset: 0,
+                grapheme_offset: 8,
+                token_type: TokenType::Some
+            },
+            GazeToken {
+                span: " ",
+                // line: 0,
+                // line_offset: 0,
+                grapheme_offset: 12,
+                token_type: TokenType::WS
+            },
+            GazeToken {
+                span: "text",
+                // line: 0,
+                // line_offset: 0,
+                grapheme_offset: 13,
+                token_type: TokenType::Text
+            },
+            GazeToken {
+                span: " ",
+                // line: 0,
+                // line_offset: 0,
+                grapheme_offset: 17,
+                token_type: TokenType::WS
+            },
+            GazeToken {
+                span: " ",
+                // line: 0,
+                // line_offset: 0,
+                grapheme_offset: 18,
+                token_type: TokenType::WS
+            },
+        ]
+    )
 }
 
 // #[test]

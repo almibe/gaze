@@ -17,20 +17,27 @@ pub struct Gaze<'a> {
     // save_point: Option<usize>,
 }
 
-#[derive(PartialEq, Debug)]
-pub struct Match<T>(T) where T: Copy;
+#[derive(PartialEq, Debug, Clone, Copy)]
+pub struct Match<T>(T)
+where
+    T: Copy;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone, Copy)]
 pub struct NoMatch;
 
-pub struct GazeToken<'a> {
-    span: &'a str,
-    start: usize,
-    line: usize,
-    line_offset: usize,
+#[derive(PartialEq, Debug, Clone, Copy)]
+pub struct GazeToken<'a, T> {
+    pub span: &'a str,
+    pub grapheme_offset: usize,
+    //pub line: usize,
+    //pub line_offset: usize,
+    pub token_type: T,
 }
 
-pub trait Tokenizer<T> where T: Copy {
+pub trait Tokenizer<T>
+where
+    T: Copy,
+{
     fn attempt(&self, gaze: &mut Gaze) -> Result<Match<T>, NoMatch>;
 }
 
@@ -81,25 +88,30 @@ impl Gaze<'_> {
     /// Anytime all of the tokenizers fail to match the function returns the current vector of GazeTokens,
     /// and the state of the Gaze instance remains where it is.
     /// If no tokenizers match at all an empty vector is returned.
-    pub fn run<T>(&mut self, tokenizers: Vec<&dyn Tokenizer<T>>) -> Vec<GazeToken> where T: Copy {
+    pub fn run<T>(&mut self, tokenizers: &Vec<&dyn Tokenizer<T>>) -> Vec<GazeToken<T>>
+    where
+        T: Copy,
+    {
         let mut matches = Vec::new();
         loop {
             let mut match_in_this_loop = false;
             let mut start_of_this_loop = self.grapheme_offset;
-            for tokenizer in &tokenizers {
+            for tokenizer in tokenizers {
                 let res = tokenizer.attempt(self);
                 match res {
-                    Ok(_) => {
+                    Ok(m) => {
                         //res
-                        matches.push(GazeToken { //TODO fix values
+                        matches.push(GazeToken {
+                            //TODO fix values
                             span: "junk",
-                            start: 0,
-                            line: 0,
-                            line_offset: 0,
+                            grapheme_offset: 0,
+                            //line: 0,
+                            //line_offset: 0,
+                            token_type: m.0,
                         });
                         match_in_this_loop = true;
                         break;
-                    },
+                    }
                     Err(_) => {
                         //do nothing?
                     }

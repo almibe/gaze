@@ -8,19 +8,24 @@ use crate::{Gaze, Match, NoMatch, Tokenizer};
 use std::collections::HashSet;
 
 pub struct TakeString<'a, T> {
-    value: &'a str,
     graphemes: Vec<&'a str>,
-    token: T
+    token: T,
 }
 
-impl<T> TakeString<'_, T> where T: Copy {
+impl<T> TakeString<'_, T>
+where
+    T: Copy,
+{
     pub fn new(value: &str, token: T) -> TakeString<T> {
         let graphemes = value.graphemes(true).collect::<Vec<&str>>();
-        TakeString { value, graphemes, token }
+        TakeString { graphemes, token }
     }
 }
 
-impl<T> Tokenizer<T> for TakeString<'_, T> where T: Copy {
+impl<T> Tokenizer<T> for TakeString<'_, T>
+where
+    T: Copy,
+{
     fn attempt(&self, gaze: &mut Gaze) -> Result<Match<T>, NoMatch> {
         let mut current_pos = 0usize;
         loop {
