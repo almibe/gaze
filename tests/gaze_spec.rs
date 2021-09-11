@@ -4,7 +4,6 @@
 
 use gaze::steps::TakeString;
 use gaze::{Gaze, GazeToken, Tokenizer};
-use std::collections::HashSet;
 
 #[test]
 fn handle_empty_string() {

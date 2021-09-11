@@ -5,7 +5,6 @@
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::{Gaze, Match, NoMatch, Tokenizer};
-use std::collections::HashSet;
 
 pub struct TakeString<'a, T> {
     graphemes: Vec<&'a str>,

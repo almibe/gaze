@@ -2,19 +2,21 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::fmt::Debug;
+
 use unicode_segmentation::UnicodeSegmentation;
 
 pub mod steps;
 
 /// The main struct for working with Gaze.
 pub struct Gaze<'a> {
-    //input: &'a str,
+    input: &'a str,
     graphemes: Vec<&'a str>,
     grapheme_offset: usize,
-    // offset: usize,           //byte offset?
-    // line: usize,             //line number
-    // location_in_line: usize, //grapheme offset of current line
-    // save_point: Option<usize>,
+    offset: usize, //byte offset?
+                   // line: usize,             //line number
+                   // location_in_line: usize, //grapheme offset of current line
+                   // save_point: Option<usize>,
 }
 
 #[derive(PartialEq, Debug, Clone, Copy)]
@@ -61,10 +63,10 @@ impl Gaze<'_> {
     pub fn new(input: &str) -> Gaze {
         let graphemes = input.graphemes(true).collect::<Vec<&str>>();
         Gaze {
-            //input,
+            input,
             graphemes,
             grapheme_offset: 0,
-            // offset: 0,
+            offset: 0,
             // line: 0,
             // location_in_line: 0,
             // save_point: None,
@@ -95,16 +97,15 @@ impl Gaze<'_> {
         let mut matches = Vec::new();
         loop {
             let mut match_in_this_loop = false;
-            let mut start_of_this_loop = self.grapheme_offset;
+            let start_of_this_loop = self.grapheme_offset;
             for tokenizer in tokenizers {
                 let res = tokenizer.attempt(self);
                 match res {
                     Ok(m) => {
-                        //res
                         matches.push(GazeToken {
                             //TODO fix values
-                            span: "junk",
-                            grapheme_offset: 0,
+                            span: &self.input[start_of_this_loop..self.grapheme_offset],
+                            grapheme_offset: start_of_this_loop,
                             //line: 0,
                             //line_offset: 0,
                             token_type: m.0,
@@ -113,7 +114,7 @@ impl Gaze<'_> {
                         break;
                     }
                     Err(_) => {
-                        //do nothing?
+                        self.grapheme_offset = start_of_this_loop;
                     }
                 }
             }
