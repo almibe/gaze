@@ -18,7 +18,7 @@ pub struct Gaze<'a> {
 }
 
 #[derive(PartialEq, Debug)]
-pub struct Match<T>(T);
+pub struct Match<T>(T) where T: Copy;
 
 #[derive(PartialEq, Debug)]
 pub struct NoMatch;
@@ -30,7 +30,7 @@ pub struct GazeToken<'a> {
     line_offset: usize,
 }
 
-pub trait Tokenizer<T> {
+pub trait Tokenizer<T> where T: Copy {
     fn attempt(&self, gaze: &mut Gaze) -> Result<Match<T>, NoMatch>;
 }
 
@@ -81,12 +81,12 @@ impl Gaze<'_> {
     /// Anytime all of the tokenizers fail to match the function returns the current vector of GazeTokens,
     /// and the state of the Gaze instance remains where it is.
     /// If no tokenizers match at all an empty vector is returned.
-    pub fn run<T>(&mut self, tokenizers: Vec<&dyn Tokenizer<T>>) -> Vec<GazeToken> {
+    pub fn run<T>(&mut self, tokenizers: Vec<&dyn Tokenizer<T>>) -> Vec<GazeToken> where T: Copy {
         let mut matches = Vec::new();
         loop {
             let mut match_in_this_loop = false;
             let mut start_of_this_loop = self.grapheme_offset;
-            for tokenizer in tokenizers {
+            for tokenizer in &tokenizers {
                 let res = tokenizer.attempt(self);
                 match res {
                     Ok(_) => {

@@ -2,8 +2,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use gaze::steps::{IgnoreAll, TakeAll, TakeFirst, TakeString};
-use gaze::{Gaze, GazeErr, Tokenizer};
+use gaze::steps::{TakeString};
+use gaze::{Gaze, Tokenizer};
 use std::collections::HashSet;
 
 #[test]
@@ -44,79 +44,79 @@ fn handle_string_matcher() {
     assert_eq!(gaze.is_complete(), true);
 }
 
-#[test]
-fn handle_ignore_all() {
-    let mut gaze = Gaze::new("   \t  this \tis some text \t ");
-    let mut hs = HashSet::new();
-    hs.insert(" ");
-    hs.insert("\t");
-    let ignore_all = IgnoreAll(hs);
-    let res = gaze.run(&ignore_all);
-    assert_eq!(res, Ok(()));
-    assert_eq!(gaze.peek(), Some("t".into()));
-    assert_eq!(gaze.is_complete(), false);
-    let res = gaze.run(&ignore_all);
-    assert_eq!(res, Ok(()));
-    assert_eq!(gaze.is_complete(), false);
-    let res = gaze.run(&TakeString::new("this \tis some text"));
-    assert_eq!(res, Ok("this \tis some text".into()));
-    assert_eq!(gaze.is_complete(), false);
-    let res = gaze.run(&ignore_all);
-    assert_eq!(res, Ok(()));
-    assert_eq!(gaze.is_complete(), true);
-    let res = gaze.run(&ignore_all);
-    assert_eq!(res, Ok(()));
-    assert_eq!(gaze.is_complete(), true);
-}
+// #[test]
+// fn handle_ignore_all() {
+//     let mut gaze = Gaze::new("   \t  this \tis some text \t ");
+//     let mut hs = HashSet::new();
+//     hs.insert(" ");
+//     hs.insert("\t");
+//     let ignore_all = IgnoreAll(hs);
+//     let res = gaze.run(&ignore_all);
+//     assert_eq!(res, Ok(()));
+//     assert_eq!(gaze.peek(), Some("t".into()));
+//     assert_eq!(gaze.is_complete(), false);
+//     let res = gaze.run(&ignore_all);
+//     assert_eq!(res, Ok(()));
+//     assert_eq!(gaze.is_complete(), false);
+//     let res = gaze.run(&TakeString::new("this \tis some text"));
+//     assert_eq!(res, Ok("this \tis some text".into()));
+//     assert_eq!(gaze.is_complete(), false);
+//     let res = gaze.run(&ignore_all);
+//     assert_eq!(res, Ok(()));
+//     assert_eq!(gaze.is_complete(), true);
+//     let res = gaze.run(&ignore_all);
+//     assert_eq!(res, Ok(()));
+//     assert_eq!(gaze.is_complete(), true);
+// }
 
-#[test]
-fn nested_steps() {
-    struct Internal();
+// #[test]
+// fn nested_steps() {
+//     struct Internal();
 
-    impl Tokenizer<String> for Internal {
-        fn attempt(&self, gaze: &mut Gaze) -> Result<String, GazeErr> {
-            gaze.run(&TakeString::new("a"))?;
-            gaze.run(&TakeString::new("b"))?;
-            gaze.run(&TakeString::new("c"))?;
-            Ok("abc".into())
-        }
-    }
+//     impl Tokenizer<String> for Internal {
+//         fn attempt(&self, gaze: &mut Gaze) -> Result<String, GazeErr> {
+//             gaze.run(&TakeString::new("a"))?;
+//             gaze.run(&TakeString::new("b"))?;
+//             gaze.run(&TakeString::new("c"))?;
+//             Ok("abc".into())
+//         }
+//     }
 
-    let step = Internal();
+//     let step = Internal();
 
-    let mut gaze_pass = Gaze::new("abc");
-    assert_eq!(gaze_pass.run(&step), Ok("abc".into()));
-    assert_eq!(gaze_pass.is_complete(), true);
+//     let mut gaze_pass = Gaze::new("abc");
+//     assert_eq!(gaze_pass.run(&step), Ok("abc".into()));
+//     assert_eq!(gaze_pass.is_complete(), true);
 
-    let mut gaze_fail = Gaze::new("abd");
-    assert_eq!(gaze_fail.run(&step), Err(GazeErr::NoMatch));
-    assert_eq!(gaze_fail.is_complete(), false);
-    assert_eq!(gaze_fail.current_offset(), 0);
-}
+//     let mut gaze_fail = Gaze::new("abd");
+//     assert_eq!(gaze_fail.run(&step), Err(GazeErr::NoMatch));
+//     assert_eq!(gaze_fail.is_complete(), false);
+//     assert_eq!(gaze_fail.current_offset(), 0);
+// }
 
-#[test]
-fn take_first() {
-    let mut gaze = Gaze::new("abbc");
+// #[test]
+// fn take_first() {
+//     let mut gaze = Gaze::new("abbc");
 
-    let a = TakeString::new("a");
-    let b = TakeString::new("b");
-    let c = TakeString::new("c");
-    let take_first = TakeFirst(Box::new([&c, &b, &a]));
+//     let a = TakeString::new("a");
+//     let b = TakeString::new("b");
+//     let c = TakeString::new("c");
+//     let take_first = TakeFirst(Box::new([&c, &b, &a]));
 
-    let res = gaze.run(&take_first);
-    assert_eq!(res, Ok("a".into()));
-}
+//     let res = gaze.run(&take_first);
+//     assert_eq!(res, Ok("a".into()));
+// }
 
-#[test]
-fn take_all() {
-    let mut gaze = Gaze::new("abbc");
+// #[test]
+// fn take_all() {
+//     let mut gaze = Gaze::new("abbc");
 
-    let a = TakeString::new("a");
-    let b = TakeString::new("b");
-    let c = TakeString::new("c");
-    let take_all = TakeAll(Box::new([&a, &b, &b, &c]));
+//     let a = TakeString::new("a");
+//     let b = TakeString::new("b");
+//     let c = TakeString::new("c");
+//     let take_all = TakeAll(Box::new([&a, &b, &b, &c]));
 
-    let res = gaze.run(&take_all);
-    let expect = vec!["a".into(), "b".into(), "b".into(), "c".into()].into_boxed_slice();
-    assert_eq!(res, Ok(expect));
-}
+//     let res = gaze.run(&take_all);
+//     let expect = vec!["a".into(), "b".into(), "b".into(), "c".into()].into_boxed_slice();
+//     assert_eq!(res, Ok(expect));
+// }
