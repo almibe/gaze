@@ -4,7 +4,7 @@
 
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::{Gaze, Match, NoMatch, Tokenizer};
+use crate::{Gaze, GazeResult, Tokenizer};
 
 pub struct TakeString<'a, T> {
     graphemes: Vec<&'a str>,
@@ -25,23 +25,21 @@ impl<T> Tokenizer<T> for TakeString<'_, T>
 where
     T: Copy,
 {
-    fn attempt(&self, gaze: &mut Gaze) -> Result<Match<T>, NoMatch> {
+    fn attempt(&self, peek: Option<&str>, current_match: &str) -> GazeResult<T> {
         let mut current_pos = 0usize;
         loop {
             if current_pos >= self.graphemes.len() {
-                return Ok(Match(self.token));
+                return GazeResult::Match(self.token);
             } else {
-                let next_value = gaze.peek();
-                match next_value {
+                match peek {
                     None => {
-                        return Err(NoMatch);
+                        return GazeResult::NoMatch;
                     }
                     Some(c) => {
                         if self.graphemes[current_pos] == c {
-                            gaze.next();
                             current_pos += 1;
                         } else {
-                            return Err(NoMatch);
+                            return GazeResult::NoMatch;
                         }
                     }
                 }
