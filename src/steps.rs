@@ -9,6 +9,7 @@ use crate::{Gaze, GazeResult, Tokenizer};
 pub struct TakeString<'a, T> {
     graphemes: Vec<&'a str>,
     token: T,
+    input_length: usize,
 }
 
 impl<T> TakeString<'_, T>
@@ -17,7 +18,11 @@ where
 {
     pub fn new(value: &str, token: T) -> TakeString<T> {
         let graphemes = value.graphemes(true).collect::<Vec<&str>>();
-        TakeString { graphemes, token }
+        TakeString {
+            graphemes,
+            token,
+            input_length: value.len(),
+        }
     }
 }
 
@@ -26,22 +31,28 @@ where
     T: Copy,
 {
     fn attempt(&self, peek: Option<&str>, current_match: &str) -> GazeResult<T> {
-        let mut current_pos = 0usize;
-        loop {
-            if current_pos >= self.graphemes.len() {
-                return GazeResult::Match(self.token);
-            } else {
-                match peek {
-                    None => {
-                        return GazeResult::NoMatch;
+        println!(
+            "TOKENIZER: {:?}--{}--{}--{}--{:?}",
+            peek,
+            current_match,
+            current_match.len(),
+            self.graphemes.len(),
+            self.graphemes
+        );
+        match peek {
+            None => {
+                return GazeResult::NoMatch;
+            }
+            Some(c) => {
+                println!("COMP: {} -- {:?}", current_match, self.graphemes);
+                if self.graphemes[current_match.len()] == c {
+                    if current_match.len() == self.input_length-1 { //TODO doesn't handle unicode correctly
+                        return GazeResult::MatchAndTake(self.token);
+                    } else {
+                        return GazeResult::Next;
                     }
-                    Some(c) => {
-                        if self.graphemes[current_pos] == c {
-                            current_pos += 1;
-                        } else {
-                            return GazeResult::NoMatch;
-                        }
-                    }
+                } else {
+                    return GazeResult::NoMatch;
                 }
             }
         }

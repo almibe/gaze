@@ -2,6 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::{fmt::Debug};
 use unicode_segmentation::UnicodeSegmentation;
 
 pub mod steps;
@@ -13,14 +14,16 @@ pub struct Gaze<'a, T> {
     // graphemes: Vec<&'a str>,
     // grapheme_offset: usize,
     // offset: usize, //byte offset?
-                   // line: usize,             //line number
-                   // location_in_line: usize, //grapheme offset of current line
-                   // save_point: Option<usize>,
+    // line: usize,             //line number
+    // location_in_line: usize, //grapheme offset of current line
+    // save_point: Option<usize>,
 }
 
 #[derive(PartialEq, Debug, Clone, Copy)]
-pub enum GazeResult<T> where
-T: Copy {
+pub enum GazeResult<T>
+where
+    T: Copy,
+{
     Next,
     MatchAndTake(T),
     Match(T),
@@ -44,8 +47,8 @@ where
 }
 
 impl<'a, T> Gaze<'a, T> {
-    pub fn new(tokenizers: &'a[&dyn Tokenizer<T>]) -> Gaze<'a, T> {
-//        let graphemes = input.graphemes(true).collect::<Vec<&str>>();
+    pub fn new(tokenizers: &'a [&dyn Tokenizer<T>]) -> Gaze<'a, T> {
+        //        let graphemes = input.graphemes(true).collect::<Vec<&str>>();
         Gaze {
             tokenizers,
             // input,
@@ -67,65 +70,81 @@ impl<'a, T> Gaze<'a, T> {
     //// If no tokenizers match at all an empty vector is returned.
     pub fn tokenize(&self, input: &'a str) -> Vec<GazeToken<T>>
     where
-        T: Copy,
+        T: Copy + Debug,
     {
         let mut matches = Vec::new();
         let graphemes = input.graphemes(true).collect::<Vec<&str>>();
-        let mut offset = 0usize;
-        loop {
+        let mut graphemes_offset = 0usize;
+        while graphemes_offset != graphemes.len() {
+            println!("a");
+            //loop for all of the input text
             let mut match_in_this_loop = false;
-            let start_of_this_loop = offset;
             for tokenizer in self.tokenizers {
-                let peek = graphemes.get(offset).map(|c| *c);
-                let res = tokenizer.attempt(peek, &input[start_of_this_loop..offset]);
-                match res {
-                    GazeResult::Next => {
-                        offset += 1;
-                    },
-                    GazeResult::MatchAndTake(m) => {
-                        offset += 1;
-                        match_in_this_loop = true;
-                        matches.push(GazeToken {
-                            span: &input[start_of_this_loop..offset],
-                            grapheme_offset: offset,
-                            token_type: m
-                        });
-                        break;
-                    },
-                    GazeResult::Match(m) => {
-                        match_in_this_loop = true;
-                        matches.push(GazeToken {
-                            span: &input[start_of_this_loop..offset],
-                            grapheme_offset: offset,
-                            token_type: m
-                        });
-                        break;
-                    },
-                    GazeResult::NoMatch => {
-                        offset = start_of_this_loop;
-                    },
-                    // Ok(m) => {
-                    //     matches.push(GazeToken {
-                    //         //TODO fix values
-                    //         span: &self.input[start_of_this_loop..self.grapheme_offset],
-                    //         grapheme_offset: start_of_this_loop,
-                    //         //line: 0,
-                    //         //line_offset: 0,
-                    //         token_type: m.0,
-                    //     });
-                    //     match_in_this_loop = true;
-                    //     break;
-                    // }
-                    // Err(_) => {
-                    //     self.grapheme_offset = start_of_this_loop;
-                    // }
+                println!("b");
+                let mut tokenizer_offset = 0usize;
+                let start_of_this_loop = graphemes_offset;
+                //loop for each tokenizer
+                loop {
+                    //loop for each grapheme against the current tokenizer from the current location
+                    let peek = graphemes.get(graphemes_offset).map(|c| *c);
+                    println!("IN GAZE: {} {}", start_of_this_loop, graphemes_offset);
+                    let res = tokenizer.attempt(peek, &input[start_of_this_loop..graphemes_offset]);
+                    println!("RES: {:?}", res);
+                    if graphemes_offset > 3 {
+                        return vec![];
+                    }
+                    match res {
+                        GazeResult::Next => {
+                            graphemes_offset += 1;
+                            tokenizer_offset += 1;
+                        }
+                        GazeResult::MatchAndTake(m) => {
+                            graphemes_offset += 1;
+                            match_in_this_loop = true;
+                            matches.push(GazeToken {
+                                span: &input[start_of_this_loop..graphemes_offset],
+                                grapheme_offset: graphemes_offset,
+                                token_type: m,
+                            });
+                            break;
+                        }
+                        GazeResult::Match(m) => {
+                            match_in_this_loop = true;
+                            matches.push(GazeToken {
+                                span: &input[start_of_this_loop..graphemes_offset],
+                                grapheme_offset: graphemes_offset,
+                                token_type: m,
+                            });
+                            break;
+                        }
+                        GazeResult::NoMatch => {
+                            graphemes_offset = start_of_this_loop;
+                            break;
+                        } // Ok(m) => {
+                          //     matches.push(GazeToken {
+                          //         //TODO fix values
+                          //         span: &self.input[start_of_this_loop..self.grapheme_offset],
+                          //         grapheme_offset: start_of_this_loop,
+                          //         //line: 0,
+                          //         //line_offset: 0,
+                          //         token_type: m.0,
+                          //     });
+                          //     match_in_this_loop = true;
+                          //     break;
+                          // }
+                          // Err(_) => {
+                          //     self.grapheme_offset = start_of_this_loop;
+                          // }
+                    }
                 }
-            }
-            if match_in_this_loop {
-                continue;
-            } else {
-                offset = start_of_this_loop;
-                break;
+                if match_in_this_loop {
+                    println!("in match");
+                    break;
+                } else {
+                    println!("in no match");
+                    graphemes_offset = start_of_this_loop;
+                    //break;
+                }
             }
         }
         matches

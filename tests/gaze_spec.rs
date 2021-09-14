@@ -6,23 +6,29 @@ use gaze::steps::TakeString;
 use gaze::{Gaze, GazeToken, Tokenizer};
 
 #[test]
-fn handle_empty_string() {
-    let mut gaze = Gaze::new("");
-    assert_eq!(gaze.is_complete(), true);
-    assert_eq!(gaze.next(), None);
-    assert_eq!(gaze.peek(), None);
-}
+fn handle_empty_string_matcher() {
+    #[derive(PartialEq, Debug, Clone, Copy)]
+    enum TokenType {
+        This,
+        WS,
+        Is,
+        Some,
+        Text,
+    }
 
-#[test]
-fn handle_single_char_string() {
-    let mut gaze = Gaze::new("x");
-    assert_eq!(gaze.is_complete(), false);
-    assert_eq!(gaze.peek(), Some("x".into()));
-    assert_eq!(gaze.is_complete(), false);
-    assert_eq!(gaze.next(), Some("x".into()));
-    assert_eq!(gaze.is_complete(), true);
-    assert_eq!(gaze.next(), None);
-    assert_eq!(gaze.peek(), None);
+    let t1 = TakeString::new("this", TokenType::This);
+    let t2 = TakeString::new(" ", TokenType::WS);
+    let t3 = TakeString::new("is", TokenType::Is);
+    let t4 = TakeString::new("some", TokenType::Some);
+    let t5 = TakeString::new("text", TokenType::Text);
+    let tokenizers: &[&dyn Tokenizer<TokenType>] = &[&t1, &t2, &t3, &t4, &t5];
+    let gaze = Gaze::new(tokenizers);
+
+    let res = gaze.tokenize("");
+    assert_eq!(
+        res,
+        vec![]
+    );
 }
 
 #[test]
@@ -36,17 +42,15 @@ fn handle_string_matcher() {
         Text,
     }
 
-    let mut gaze = Gaze::new("this is some text  ");
     let t1 = TakeString::new("this", TokenType::This);
     let t2 = TakeString::new(" ", TokenType::WS);
     let t3 = TakeString::new("is", TokenType::Is);
     let t4 = TakeString::new("some", TokenType::Some);
     let t5 = TakeString::new("text", TokenType::Text);
+    let tokenizers: &[&dyn Tokenizer<TokenType>] = &[&t1, &t2, &t3, &t4, &t5];
+    let gaze = Gaze::new(tokenizers);
 
-    let tokenizers: Vec<&dyn Tokenizer<TokenType>> = vec![&t1, &t2, &t3, &t4, &t5];
-    let res = gaze.run(&tokenizers);
-    //    assert_eq!(gaze.peek(), None);
-    //    assert_eq!(gaze.is_complete(), true);
+    let res = gaze.tokenize("this is some text  ");
     assert_eq!(
         res,
         vec![
@@ -114,7 +118,7 @@ fn handle_string_matcher() {
                 token_type: TokenType::WS
             },
         ]
-    )
+    );
 }
 
 // #[test]
