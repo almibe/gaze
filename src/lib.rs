@@ -52,7 +52,7 @@ impl<'a, T> Gaze<'a, T> {
     //// Anytime all of the tokenizers fail to match the function returns the current vector of GazeTokens,
     //// and the state of the Gaze instance remains where it is.
     //// If no tokenizers match at all an empty vector is returned.
-    pub fn tokenize(&self, input: &'a str) -> Vec<GazeToken<T>>
+    pub fn tokenize(&self, input: &'a str) -> (Vec<GazeToken<T>>, &str)
     where
         T: Copy + Debug,
     {
@@ -107,6 +107,6 @@ impl<'a, T> Gaze<'a, T> {
                 break;
             }
         }
-        matches
+        (matches, &input[graphemes_offset..])
     }
 }

@@ -25,7 +25,7 @@ fn handle_empty_string_matcher() {
     let gaze = Gaze::new(tokenizers);
 
     let res = gaze.tokenize("");
-    assert_eq!(res, vec![]);
+    assert_eq!(res, (vec![], ""));
 }
 
 #[test]
@@ -43,7 +43,7 @@ fn handle_zero_text_zero_tokenizers() {
     let gaze = Gaze::new(tokenizers);
 
     let res = gaze.tokenize("");
-    assert_eq!(res, vec![]);
+    assert_eq!(res, (vec![], ""));
 }
 
 #[test]
@@ -61,7 +61,7 @@ fn handle_zero_tokenizers() {
     let gaze = Gaze::new(tokenizers);
 
     let res = gaze.tokenize("wtf");
-    assert_eq!(res, vec![]);
+    assert_eq!(res, (vec![], "wtf"));
 }
 
 #[test]
@@ -84,7 +84,7 @@ fn handle_zero_matches() {
     let gaze = Gaze::new(tokenizers);
 
     let res = gaze.tokenize("wtf");
-    assert_eq!(res, vec![]);
+    assert_eq!(res, (vec![], "wtf"));
 }
 
 #[test]
@@ -107,50 +107,56 @@ fn handle_partial_matches() {
     let gaze = Gaze::new(tokenizers);
 
     let res = gaze.tokenize("this is some wtf");
-    assert_eq!(res, vec![
-        GazeToken {
-            span: "this",
-            // line: 0,
-            // line_offset: 0,
-            grapheme_offset: 0,
-            token_type: TokenType::This
-        },
-        GazeToken {
-            span: " ",
-            // line: 0,
-            // line_offset: 0,
-            grapheme_offset: 4,
-            token_type: TokenType::WS
-        },
-        GazeToken {
-            span: "is",
-            // line: 0,
-            // line_offset: 0,
-            grapheme_offset: 5,
-            token_type: TokenType::Is
-        },
-        GazeToken {
-            span: " ",
-            // line: 0,
-            // line_offset: 0,
-            grapheme_offset: 7,
-            token_type: TokenType::WS
-        },
-        GazeToken {
-            span: "some",
-            // line: 0,
-            // line_offset: 0,
-            grapheme_offset: 8,
-            token_type: TokenType::Some
-        },
-        GazeToken {
-            span: " ",
-            // line: 0,
-            // line_offset: 0,
-            grapheme_offset: 12,
-            token_type: TokenType::WS
-        },
-    ]);
+    assert_eq!(
+        res,
+        (
+            vec![
+                GazeToken {
+                    span: "this",
+                    // line: 0,
+                    // line_offset: 0,
+                    grapheme_offset: 0,
+                    token_type: TokenType::This
+                },
+                GazeToken {
+                    span: " ",
+                    // line: 0,
+                    // line_offset: 0,
+                    grapheme_offset: 4,
+                    token_type: TokenType::WS
+                },
+                GazeToken {
+                    span: "is",
+                    // line: 0,
+                    // line_offset: 0,
+                    grapheme_offset: 5,
+                    token_type: TokenType::Is
+                },
+                GazeToken {
+                    span: " ",
+                    // line: 0,
+                    // line_offset: 0,
+                    grapheme_offset: 7,
+                    token_type: TokenType::WS
+                },
+                GazeToken {
+                    span: "some",
+                    // line: 0,
+                    // line_offset: 0,
+                    grapheme_offset: 8,
+                    token_type: TokenType::Some
+                },
+                GazeToken {
+                    span: " ",
+                    // line: 0,
+                    // line_offset: 0,
+                    grapheme_offset: 12,
+                    token_type: TokenType::WS
+                },
+            ],
+            "wtf"
+        )
+    );
 }
 
 #[test]
@@ -175,71 +181,74 @@ fn handle_string_matcher() {
     let res = gaze.tokenize("this is some text  ");
     assert_eq!(
         res,
-        vec![
-            GazeToken {
-                span: "this",
-                // line: 0,
-                // line_offset: 0,
-                grapheme_offset: 0,
-                token_type: TokenType::This
-            },
-            GazeToken {
-                span: " ",
-                // line: 0,
-                // line_offset: 0,
-                grapheme_offset: 4,
-                token_type: TokenType::WS
-            },
-            GazeToken {
-                span: "is",
-                // line: 0,
-                // line_offset: 0,
-                grapheme_offset: 5,
-                token_type: TokenType::Is
-            },
-            GazeToken {
-                span: " ",
-                // line: 0,
-                // line_offset: 0,
-                grapheme_offset: 7,
-                token_type: TokenType::WS
-            },
-            GazeToken {
-                span: "some",
-                // line: 0,
-                // line_offset: 0,
-                grapheme_offset: 8,
-                token_type: TokenType::Some
-            },
-            GazeToken {
-                span: " ",
-                // line: 0,
-                // line_offset: 0,
-                grapheme_offset: 12,
-                token_type: TokenType::WS
-            },
-            GazeToken {
-                span: "text",
-                // line: 0,
-                // line_offset: 0,
-                grapheme_offset: 13,
-                token_type: TokenType::Text
-            },
-            GazeToken {
-                span: " ",
-                // line: 0,
-                // line_offset: 0,
-                grapheme_offset: 17,
-                token_type: TokenType::WS
-            },
-            GazeToken {
-                span: " ",
-                // line: 0,
-                // line_offset: 0,
-                grapheme_offset: 18,
-                token_type: TokenType::WS
-            },
-        ]
+        (
+            vec![
+                GazeToken {
+                    span: "this",
+                    // line: 0,
+                    // line_offset: 0,
+                    grapheme_offset: 0,
+                    token_type: TokenType::This
+                },
+                GazeToken {
+                    span: " ",
+                    // line: 0,
+                    // line_offset: 0,
+                    grapheme_offset: 4,
+                    token_type: TokenType::WS
+                },
+                GazeToken {
+                    span: "is",
+                    // line: 0,
+                    // line_offset: 0,
+                    grapheme_offset: 5,
+                    token_type: TokenType::Is
+                },
+                GazeToken {
+                    span: " ",
+                    // line: 0,
+                    // line_offset: 0,
+                    grapheme_offset: 7,
+                    token_type: TokenType::WS
+                },
+                GazeToken {
+                    span: "some",
+                    // line: 0,
+                    // line_offset: 0,
+                    grapheme_offset: 8,
+                    token_type: TokenType::Some
+                },
+                GazeToken {
+                    span: " ",
+                    // line: 0,
+                    // line_offset: 0,
+                    grapheme_offset: 12,
+                    token_type: TokenType::WS
+                },
+                GazeToken {
+                    span: "text",
+                    // line: 0,
+                    // line_offset: 0,
+                    grapheme_offset: 13,
+                    token_type: TokenType::Text
+                },
+                GazeToken {
+                    span: " ",
+                    // line: 0,
+                    // line_offset: 0,
+                    grapheme_offset: 17,
+                    token_type: TokenType::WS
+                },
+                GazeToken {
+                    span: " ",
+                    // line: 0,
+                    // line_offset: 0,
+                    grapheme_offset: 18,
+                    token_type: TokenType::WS
+                },
+            ],
+            ""
+        )
     );
 }
 
