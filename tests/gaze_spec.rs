@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use gaze::steps::TakeString;
+use gaze::tokenizers::TakeString;
 use gaze::{Gaze, GazeToken, Tokenizer};
 
 #[test]

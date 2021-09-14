@@ -5,7 +5,7 @@
 use std::fmt::Debug;
 use unicode_segmentation::UnicodeSegmentation;
 
-pub mod steps;
+pub mod tokenizers;
 
 /// The main struct for working with Gaze.
 pub struct Gaze<'a, T> {
@@ -24,6 +24,15 @@ where
 }
 
 #[derive(PartialEq, Debug, Clone, Copy)]
+pub enum GazeResultEnd<T>
+where
+    T: Copy,
+{
+    Match(T),
+    NoMatch,
+}
+
+#[derive(PartialEq, Debug, Clone, Copy)]
 pub struct GazeToken<'a, T> {
     pub span: &'a str,
     pub grapheme_offset: usize,
@@ -37,7 +46,8 @@ pub trait Tokenizer<T>
 where
     T: Copy,
 {
-    fn attempt(&self, peek: Option<&str>, current_match: &str) -> GazeResult<T>;
+    fn attempt(&self, peek: &str, current_match: &str) -> GazeResult<T>;
+    fn attempt_end(&self, current_match: &str) -> GazeResultEnd<T>;
 }
 
 impl<'a, T> Gaze<'a, T> {
@@ -67,33 +77,57 @@ impl<'a, T> Gaze<'a, T> {
                 loop {
                     //loop for each grapheme against the current tokenizer from the current location
                     let peek = graphemes.get(graphemes_offset).map(|c| *c);
-                    let res = tokenizer.attempt(peek, &input[start_of_this_loop..graphemes_offset]);
-                    match res {
-                        GazeResult::Next => {
-                            graphemes_offset += 1;
+                    match peek {
+                        Some(peek) => {
+                            let res = tokenizer
+                                .attempt(peek, &input[start_of_this_loop..graphemes_offset]);
+                            match res {
+                                GazeResult::Next => {
+                                    graphemes_offset += 1;
+                                }
+                                GazeResult::MatchAndTake(m) => {
+                                    graphemes_offset += 1;
+                                    match_in_this_loop = true;
+                                    matches.push(GazeToken {
+                                        span: &input[start_of_this_loop..graphemes_offset],
+                                        grapheme_offset: start_of_this_loop,
+                                        token_type: m,
+                                    });
+                                    break;
+                                }
+                                GazeResult::Match(m) => {
+                                    match_in_this_loop = true;
+                                    matches.push(GazeToken {
+                                        span: &input[start_of_this_loop..graphemes_offset],
+                                        grapheme_offset: graphemes_offset,
+                                        token_type: m,
+                                    });
+                                    break;
+                                }
+                                GazeResult::NoMatch => {
+                                    graphemes_offset = start_of_this_loop;
+                                    break;
+                                }
+                            }
                         }
-                        GazeResult::MatchAndTake(m) => {
-                            graphemes_offset += 1;
-                            match_in_this_loop = true;
-                            matches.push(GazeToken {
-                                span: &input[start_of_this_loop..graphemes_offset],
-                                grapheme_offset: start_of_this_loop,
-                                token_type: m,
-                            });
-                            break;
-                        }
-                        GazeResult::Match(m) => {
-                            match_in_this_loop = true;
-                            matches.push(GazeToken {
-                                span: &input[start_of_this_loop..graphemes_offset],
-                                grapheme_offset: graphemes_offset,
-                                token_type: m,
-                            });
-                            break;
-                        }
-                        GazeResult::NoMatch => {
-                            graphemes_offset = start_of_this_loop;
-                            break;
+                        None => {
+                            let res =
+                                tokenizer.attempt_end(&input[start_of_this_loop..graphemes_offset]);
+                            match res {
+                                GazeResultEnd::Match(m) => {
+                                    match_in_this_loop = true;
+                                    matches.push(GazeToken {
+                                        span: &input[start_of_this_loop..graphemes_offset],
+                                        grapheme_offset: graphemes_offset,
+                                        token_type: m,
+                                    });
+                                    break;
+                                }
+                                GazeResultEnd::NoMatch => {
+                                    graphemes_offset = start_of_this_loop;
+                                    break;
+                                }
+                            }
                         }
                     }
                 }

@@ -4,7 +4,7 @@
 
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::{GazeResult, Tokenizer};
+use crate::{GazeResult, GazeResultEnd, Tokenizer};
 
 pub struct TakeString<'a, T> {
     graphemes: Vec<&'a str>,
@@ -30,24 +30,21 @@ impl<T> Tokenizer<T> for TakeString<'_, T>
 where
     T: Copy,
 {
-    fn attempt(&self, peek: Option<&str>, current_match: &str) -> GazeResult<T> {
-        match peek {
-            None => {
-                return GazeResult::NoMatch;
+    fn attempt(&self, peek: &str, current_match: &str) -> GazeResult<T> {
+        if self.graphemes[current_match.len()] == peek {
+            if current_match.len() == self.input_length - 1 {
+                //TODO doesn't handle unicode correctly
+                return GazeResult::MatchAndTake(self.token);
+            } else {
+                return GazeResult::Next;
             }
-            Some(c) => {
-                if self.graphemes[current_match.len()] == c {
-                    if current_match.len() == self.input_length - 1 {
-                        //TODO doesn't handle unicode correctly
-                        return GazeResult::MatchAndTake(self.token);
-                    } else {
-                        return GazeResult::Next;
-                    }
-                } else {
-                    return GazeResult::NoMatch;
-                }
-            }
+        } else {
+            return GazeResult::NoMatch;
         }
+    }
+
+    fn attempt_end(&self, _: &str) -> GazeResultEnd<T> {
+        return GazeResultEnd::NoMatch;
     }
 }
 
@@ -75,31 +72,33 @@ where
 //     }
 // }
 
-// /// A Step that takes values from the String until the predicate fails.
-// pub struct TakeWhile<'a>(pub &'a dyn Fn(&str) -> bool);
+/// A Step that takes values from the String until the predicate fails.
+pub struct TakeWhile<'a, T>(pub &'a dyn Fn(&str) -> bool, T);
 
-// impl Tokenizer<String> for TakeWhile<'_> {
-//     fn attempt(&self, gaze: &mut Gaze) -> Result<String, GazeErr> {
-//         //TODO this will need to be rewritten once handle Unicode better
-//         let mut res = String::new();
-//         loop {
-//             let next_value = gaze.peek();
-//             match next_value {
-//                 None => {
-//                     return Ok(res);
-//                 }
-//                 Some(c) => {
-//                     if self.0(c) {
-//                         res += c;
-//                         gaze.next();
-//                     } else {
-//                         return Ok(res);
-//                     }
-//                 }
-//             }
-//         }
-//     }
-// }
+impl<T> Tokenizer<T> for TakeWhile<'_, T>
+where
+    T: Copy,
+{
+    fn attempt(&self, peek: &str, current_match: &str) -> GazeResult<T> {
+        //TODO this will need to be rewritten once handle Unicode better
+        if self.0(peek) {
+            return GazeResult::Next;
+        } else {
+            if current_match.is_empty() {
+                return GazeResult::NoMatch;
+            }
+            return GazeResult::Match(self.1);
+        }
+    }
+
+    fn attempt_end(&self, current_match: &str) -> GazeResultEnd<T> {
+        if current_match.is_empty() {
+            return GazeResultEnd::NoMatch;
+        } else {
+            return GazeResultEnd::Match(self.1);
+        }
+    }
+}
 
 // /// A Step that takes values from the String until the predicate passes.
 // pub struct TakeUntil<'a>(pub &'a dyn Fn(&str) -> bool);
