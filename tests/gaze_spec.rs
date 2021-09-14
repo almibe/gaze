@@ -29,6 +29,90 @@ fn handle_empty_string_matcher() {
 }
 
 #[test]
+fn handle_zero_text_zero_tokenizers() {
+    #[derive(PartialEq, Debug, Clone, Copy)]
+    enum TokenType {
+        This,
+        WS,
+        Is,
+        Some,
+        Text,
+    }
+
+    let tokenizers: &[&dyn Tokenizer<TokenType>] = &[];
+    let gaze = Gaze::new(tokenizers);
+
+    let res = gaze.tokenize("");
+    assert_eq!(res, vec![]);
+}
+
+#[test]
+fn handle_zero_tokenizers() {
+    #[derive(PartialEq, Debug, Clone, Copy)]
+    enum TokenType {
+        This,
+        WS,
+        Is,
+        Some,
+        Text,
+    }
+
+    let tokenizers: &[&dyn Tokenizer<TokenType>] = &[];
+    let gaze = Gaze::new(tokenizers);
+
+    let res = gaze.tokenize("wtf");
+    assert_eq!(res, vec![]);
+}
+
+#[test]
+fn handle_zero_matches() {
+    #[derive(PartialEq, Debug, Clone, Copy)]
+    enum TokenType {
+        This,
+        WS,
+        Is,
+        Some,
+        Text,
+    }
+
+    let t1 = TakeString::new("this", TokenType::This);
+    let t2 = TakeString::new(" ", TokenType::WS);
+    let t3 = TakeString::new("is", TokenType::Is);
+    let t4 = TakeString::new("some", TokenType::Some);
+    let t5 = TakeString::new("text", TokenType::Text);
+    let tokenizers: &[&dyn Tokenizer<TokenType>] = &[&t1, &t2, &t3, &t4, &t5];
+    let gaze = Gaze::new(tokenizers);
+
+    let res = gaze.tokenize("wtf");
+    assert_eq!(res, vec![]);
+}
+
+#[test]
+fn handle_partial_matches() {
+    #[derive(PartialEq, Debug, Clone, Copy)]
+    enum TokenType {
+        This,
+        WS,
+        Is,
+        Some,
+        Text,
+    }
+
+    let t1 = TakeString::new("this", TokenType::This);
+    let t2 = TakeString::new(" ", TokenType::WS);
+    let t3 = TakeString::new("is", TokenType::Is);
+    let t4 = TakeString::new("some", TokenType::Some);
+    let t5 = TakeString::new("text", TokenType::Text);
+    let tokenizers: &[&dyn Tokenizer<TokenType>] = &[&t1, &t2, &t3, &t4, &t5];
+    let gaze = Gaze::new(tokenizers);
+
+    let res = gaze.tokenize("this is some wtf");
+    assert_eq!(res, vec![
+        //TODO fill in
+    ]);
+}
+
+#[test]
 fn handle_string_matcher() {
     #[derive(PartialEq, Debug, Clone, Copy)]
     enum TokenType {
