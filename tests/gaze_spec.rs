@@ -25,10 +25,7 @@ fn handle_empty_string_matcher() {
     let gaze = Gaze::new(tokenizers);
 
     let res = gaze.tokenize("");
-    assert_eq!(
-        res,
-        vec![]
-    );
+    assert_eq!(res, vec![]);
 }
 
 #[test]
