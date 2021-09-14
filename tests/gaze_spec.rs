@@ -64,7 +64,7 @@ fn handle_zero_tokenizers() {
     assert_eq!(res, vec![]);
 }
 
-//#[test]
+#[test]
 fn handle_zero_matches() {
     #[derive(PartialEq, Debug, Clone, Copy)]
     enum TokenType {
@@ -87,7 +87,7 @@ fn handle_zero_matches() {
     assert_eq!(res, vec![]);
 }
 
-//#[test]
+#[test]
 fn handle_partial_matches() {
     #[derive(PartialEq, Debug, Clone, Copy)]
     enum TokenType {
@@ -108,11 +108,52 @@ fn handle_partial_matches() {
 
     let res = gaze.tokenize("this is some wtf");
     assert_eq!(res, vec![
-        //TODO fill in
+        GazeToken {
+            span: "this",
+            // line: 0,
+            // line_offset: 0,
+            grapheme_offset: 0,
+            token_type: TokenType::This
+        },
+        GazeToken {
+            span: " ",
+            // line: 0,
+            // line_offset: 0,
+            grapheme_offset: 4,
+            token_type: TokenType::WS
+        },
+        GazeToken {
+            span: "is",
+            // line: 0,
+            // line_offset: 0,
+            grapheme_offset: 5,
+            token_type: TokenType::Is
+        },
+        GazeToken {
+            span: " ",
+            // line: 0,
+            // line_offset: 0,
+            grapheme_offset: 7,
+            token_type: TokenType::WS
+        },
+        GazeToken {
+            span: "some",
+            // line: 0,
+            // line_offset: 0,
+            grapheme_offset: 8,
+            token_type: TokenType::Some
+        },
+        GazeToken {
+            span: " ",
+            // line: 0,
+            // line_offset: 0,
+            grapheme_offset: 12,
+            token_type: TokenType::WS
+        },
     ]);
 }
 
-//#[test]
+#[test]
 fn handle_string_matcher() {
     #[derive(PartialEq, Debug, Clone, Copy)]
     enum TokenType {
