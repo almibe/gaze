@@ -64,7 +64,7 @@ fn handle_zero_tokenizers() {
     assert_eq!(res, vec![]);
 }
 
-#[test]
+//#[test]
 fn handle_zero_matches() {
     #[derive(PartialEq, Debug, Clone, Copy)]
     enum TokenType {
@@ -87,7 +87,7 @@ fn handle_zero_matches() {
     assert_eq!(res, vec![]);
 }
 
-#[test]
+//#[test]
 fn handle_partial_matches() {
     #[derive(PartialEq, Debug, Clone, Copy)]
     enum TokenType {
@@ -112,7 +112,7 @@ fn handle_partial_matches() {
     ]);
 }
 
-#[test]
+//#[test]
 fn handle_string_matcher() {
     #[derive(PartialEq, Debug, Clone, Copy)]
     enum TokenType {

@@ -103,6 +103,9 @@ impl<'a, T> Gaze<'a, T> {
                     graphemes_offset = start_of_this_loop;
                 }
             }
+            if !match_in_this_loop {
+                break;
+            }
         }
         matches
     }
