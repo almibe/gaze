@@ -34,17 +34,17 @@ where
         if self.graphemes[current_match.len()] == peek {
             if current_match.len() == self.input_length - 1 {
                 //TODO doesn't handle unicode correctly
-                return GazeResult::MatchAndTake(self.token);
+                GazeResult::MatchAndTake(self.token)
             } else {
-                return GazeResult::Next;
+                GazeResult::Next
             }
         } else {
-            return GazeResult::NoMatch;
+            GazeResult::NoMatch
         }
     }
 
     fn attempt_end(&self, _: &str) -> GazeResultEnd<T> {
-        return GazeResultEnd::NoMatch;
+        GazeResultEnd::NoMatch
     }
 }
 
@@ -82,20 +82,19 @@ where
     fn attempt(&self, peek: &str, current_match: &str) -> GazeResult<T> {
         //TODO this will need to be rewritten once handle Unicode better
         if self.0(peek) {
-            return GazeResult::Next;
+            GazeResult::Next
+        } else if current_match.is_empty() {
+            GazeResult::NoMatch
         } else {
-            if current_match.is_empty() {
-                return GazeResult::NoMatch;
-            }
-            return GazeResult::Match(self.1);
+            GazeResult::Match(self.1)
         }
     }
 
     fn attempt_end(&self, current_match: &str) -> GazeResultEnd<T> {
         if current_match.is_empty() {
-            return GazeResultEnd::NoMatch;
+            GazeResultEnd::NoMatch
         } else {
-            return GazeResultEnd::Match(self.1);
+            GazeResultEnd::Match(self.1)
         }
     }
 }

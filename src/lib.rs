@@ -76,7 +76,7 @@ impl<'a, T> Gaze<'a, T> {
                 //loop for each tokenizer
                 loop {
                     //loop for each grapheme against the current tokenizer from the current location
-                    let peek = graphemes.get(graphemes_offset).map(|c| *c);
+                    let peek = graphemes.get(graphemes_offset).copied();
                     match peek {
                         Some(peek) => {
                             let res = tokenizer

@@ -31,13 +31,7 @@ fn handle_empty_string_matcher() {
 #[test]
 fn handle_zero_text_zero_tokenizers() {
     #[derive(PartialEq, Debug, Clone, Copy)]
-    enum TokenType {
-        This,
-        WS,
-        Is,
-        Some,
-        Text,
-    }
+    enum TokenType {}
 
     let tokenizers: &[&dyn Tokenizer<TokenType>] = &[];
     let gaze = Gaze::new(tokenizers);
@@ -49,13 +43,7 @@ fn handle_zero_text_zero_tokenizers() {
 #[test]
 fn handle_zero_tokenizers() {
     #[derive(PartialEq, Debug, Clone, Copy)]
-    enum TokenType {
-        This,
-        WS,
-        Is,
-        Some,
-        Text,
-    }
+    enum TokenType {}
 
     let tokenizers: &[&dyn Tokenizer<TokenType>] = &[];
     let gaze = Gaze::new(tokenizers);
