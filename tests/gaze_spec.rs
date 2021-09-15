@@ -16,12 +16,13 @@ fn handle_empty_string_matcher() {
         Text,
     }
 
-    let t1 = TakeString::new("this", TokenType::This);
-    let t2 = TakeString::new(" ", TokenType::WS);
-    let t3 = TakeString::new("is", TokenType::Is);
-    let t4 = TakeString::new("some", TokenType::Some);
-    let t5 = TakeString::new("text", TokenType::Text);
-    let tokenizers: &[&dyn Tokenizer<TokenType>] = &[&t1, &t2, &t3, &t4, &t5];
+    let tokenizers: &[&dyn Tokenizer<TokenType>] = &[
+        &TakeString::new("this", TokenType::This),
+        &TakeString::new(" ", TokenType::WS),
+        &TakeString::new("is", TokenType::Is),
+        &TakeString::new("some", TokenType::Some),
+        &TakeString::new("text", TokenType::Text),
+    ];
     let gaze = Gaze::new(tokenizers);
 
     let res = gaze.tokenize("");
@@ -63,12 +64,13 @@ fn handle_zero_matches() {
         Text,
     }
 
-    let t1 = TakeString::new("this", TokenType::This);
-    let t2 = TakeString::new(" ", TokenType::WS);
-    let t3 = TakeString::new("is", TokenType::Is);
-    let t4 = TakeString::new("some", TokenType::Some);
-    let t5 = TakeString::new("text", TokenType::Text);
-    let tokenizers: &[&dyn Tokenizer<TokenType>] = &[&t1, &t2, &t3, &t4, &t5];
+    let tokenizers: &[&dyn Tokenizer<TokenType>] = &[
+        &TakeString::new("this", TokenType::This),
+        &TakeString::new(" ", TokenType::WS),
+        &TakeString::new("is", TokenType::Is),
+        &TakeString::new("some", TokenType::Some),
+        &TakeString::new("text", TokenType::Text),
+    ];
     let gaze = Gaze::new(tokenizers);
 
     let res = gaze.tokenize("wtf");
@@ -86,12 +88,13 @@ fn handle_partial_matches() {
         Text,
     }
 
-    let t1 = TakeString::new("this", TokenType::This);
-    let t2 = TakeString::new(" ", TokenType::WS);
-    let t3 = TakeString::new("is", TokenType::Is);
-    let t4 = TakeString::new("some", TokenType::Some);
-    let t5 = TakeString::new("text", TokenType::Text);
-    let tokenizers: &[&dyn Tokenizer<TokenType>] = &[&t1, &t2, &t3, &t4, &t5];
+    let tokenizers: &[&dyn Tokenizer<TokenType>] = &[
+        &TakeString::new("this", TokenType::This),
+        &TakeString::new(" ", TokenType::WS),
+        &TakeString::new("is", TokenType::Is),
+        &TakeString::new("some", TokenType::Some),
+        &TakeString::new("text", TokenType::Text),
+    ];
     let gaze = Gaze::new(tokenizers);
 
     let res = gaze.tokenize("this is some wtf");
@@ -158,12 +161,13 @@ fn handle_string_matcher() {
         Text,
     }
 
-    let t1 = TakeString::new("this", TokenType::This);
-    let t2 = TakeString::new(" ", TokenType::WS);
-    let t3 = TakeString::new("is", TokenType::Is);
-    let t4 = TakeString::new("some", TokenType::Some);
-    let t5 = TakeString::new("text", TokenType::Text);
-    let tokenizers: &[&dyn Tokenizer<TokenType>] = &[&t1, &t2, &t3, &t4, &t5];
+    let tokenizers: &[&dyn Tokenizer<TokenType>] = &[
+        &TakeString::new("this", TokenType::This),
+        &TakeString::new(" ", TokenType::WS),
+        &TakeString::new("is", TokenType::Is),
+        &TakeString::new("some", TokenType::Some),
+        &TakeString::new("text", TokenType::Text),
+    ];
     let gaze = Gaze::new(tokenizers);
 
     let res = gaze.tokenize("this is some text  ");
@@ -239,6 +243,9 @@ fn handle_string_matcher() {
         )
     );
 }
+
+#[test]
+fn take_while() {}
 
 // #[test]
 // fn handle_ignore_all() {
