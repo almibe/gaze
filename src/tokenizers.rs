@@ -73,7 +73,7 @@ where
 // }
 
 /// A Step that takes values from the String until the predicate fails.
-pub struct TakeWhile<'a, T>(pub &'a dyn Fn(&str) -> bool, T);
+pub struct TakeWhile<'a, T>(pub &'a dyn Fn(&str) -> bool, pub T);
 
 impl<T> Tokenizer<T> for TakeWhile<'_, T>
 where

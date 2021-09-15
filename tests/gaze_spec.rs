@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use gaze::tokenizers::TakeString;
+use gaze::tokenizers::{TakeString, TakeWhile};
 use gaze::{Gaze, GazeToken, Tokenizer};
 
 #[test]
@@ -245,7 +245,78 @@ fn handle_string_matcher() {
 }
 
 #[test]
-fn take_while() {}
+fn take_while() {
+    #[derive(PartialEq, Debug, Clone, Copy)]
+    enum TokenType {
+        WS,
+        Text,
+        Digit,
+    }
+
+    fn is_text(s: &str) -> bool {
+        s.ge("a") && s.le("z")
+    }
+
+    fn is_digit(s: &str) -> bool {
+        s.ge("0") && s.le("9")
+    }
+
+    fn is_ws(s: &str) -> bool {
+        s.eq(" ")
+    }
+
+    let tokenizers: &[&dyn Tokenizer<TokenType>] = &[
+        &TakeWhile(&|s: &str| { is_text(s) }, TokenType::Text ),
+        &TakeWhile(&|s: &str| { is_digit(s) }, TokenType::Digit ),
+        &TakeWhile(&|s: &str| { is_ws(s) }, TokenType::WS ),
+    ];
+    let gaze = Gaze::new(tokenizers);
+
+    let res = gaze.tokenize("234242     3dsflasjfkj    !!   ");
+    assert_eq!(
+        res,
+        (
+            vec![
+                GazeToken {
+                    span: "234242",
+                    // line: 0,
+                    // line_offset: 0,
+                    grapheme_offset: 0,
+                    token_type: TokenType::Digit
+                },
+                GazeToken {
+                    span: "     ",
+                    // line: 0,
+                    // line_offset: 0,
+                    grapheme_offset: 6,
+                    token_type: TokenType::WS
+                },
+                GazeToken {
+                    span: "3",
+                    // line: 0,
+                    // line_offset: 0,
+                    grapheme_offset: 11,
+                    token_type: TokenType::Digit
+                },
+                GazeToken {
+                    span: "dsflasjfkj",
+                    // line: 0,
+                    // line_offset: 0,
+                    grapheme_offset: 12,
+                    token_type: TokenType::Text
+                },
+                GazeToken {
+                    span: "    ",
+                    // line: 0,
+                    // line_offset: 0,
+                    grapheme_offset: 22,
+                    token_type: TokenType::WS
+                },
+            ],
+            "!!   "
+        )
+    );
+}
 
 // #[test]
 // fn handle_ignore_all() {

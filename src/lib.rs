@@ -99,7 +99,7 @@ impl<'a, T> Gaze<'a, T> {
                                     match_in_this_loop = true;
                                     matches.push(GazeToken {
                                         span: &input[start_of_this_loop..graphemes_offset],
-                                        grapheme_offset: graphemes_offset,
+                                        grapheme_offset: start_of_this_loop,
                                         token_type: m,
                                     });
                                     break;
@@ -118,7 +118,7 @@ impl<'a, T> Gaze<'a, T> {
                                     match_in_this_loop = true;
                                     matches.push(GazeToken {
                                         span: &input[start_of_this_loop..graphemes_offset],
-                                        grapheme_offset: graphemes_offset,
+                                        grapheme_offset: start_of_this_loop,
                                         token_type: m,
                                     });
                                     break;
