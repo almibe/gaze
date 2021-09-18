@@ -4,49 +4,51 @@
 
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::{GazeResult, GazeResultEnd, Tokenizer};
+use crate::{GazeResult, Tokenizer};
 
-pub struct TakeString<'a, T> {
-    graphemes: Vec<&'a str>,
-    token: T,
-    input_length: usize,
-}
+//pub fn TakeString(to_match: &str) ->
 
-impl<T> TakeString<'_, T>
-where
-    T: Copy,
-{
-    pub fn new(value: &str, token: T) -> TakeString<T> {
-        let graphemes = value.graphemes(true).collect::<Vec<&str>>();
-        TakeString {
-            graphemes,
-            token,
-            input_length: value.len(),
-        }
-    }
-}
+// pub struct TakeString<'a, T> {
+//     graphemes: Vec<&'a str>,
+//     token: T,
+//     input_length: usize,
+// }
 
-impl<T> Tokenizer<T> for TakeString<'_, T>
-where
-    T: Copy,
-{
-    fn attempt(&self, peek: &str, current_match: &str) -> GazeResult<T> {
-        if self.graphemes[current_match.len()] == peek {
-            if current_match.len() == self.input_length - 1 {
-                //TODO doesn't handle unicode correctly
-                GazeResult::MatchAndTake(self.token)
-            } else {
-                GazeResult::Next
-            }
-        } else {
-            GazeResult::NoMatch
-        }
-    }
+// impl<T> TakeString<'_, T>
+// where
+//     T: Copy,
+// {
+//     pub fn new(value: &str, token: T) -> TakeString<T> {
+//         let graphemes = value.graphemes(true).collect::<Vec<&str>>();
+//         TakeString {
+//             graphemes,
+//             token,
+//             input_length: value.len(),
+//         }
+//     }
+// }
 
-    fn attempt_end(&self, _: &str) -> GazeResultEnd<T> {
-        GazeResultEnd::NoMatch
-    }
-}
+// impl<T> Tokenizer<T> for TakeString<'_, T>
+// where
+//     T: Copy,
+// {
+//     fn attempt(&self, peek: &str, current_match: &str) -> GazeResult<T> {
+//         if self.graphemes[current_match.len()] == peek {
+//             if current_match.len() == self.input_length - 1 {
+//                 //TODO doesn't handle unicode correctly
+//                 GazeResult::MatchAndTake(self.token)
+//             } else {
+//                 GazeResult::Next
+//             }
+//         } else {
+//             GazeResult::NoMatch
+//         }
+//     }
+
+//     fn attempt_end(&self, _: &str) -> GazeResultEnd<T> {
+//         GazeResultEnd::NoMatch
+//     }
+// }
 
 // /// A Step that ignores all chars passed in.
 // pub struct IgnoreAll<'a>(pub HashSet<&'a str>);
@@ -72,32 +74,32 @@ where
 //     }
 // }
 
-/// A Step that takes values from the String until the predicate fails.
-pub struct TakeWhile<'a, T>(pub &'a dyn Fn(&str) -> bool, pub T);
+//// A Step that takes values from the String until the predicate fails.
+// pub struct TakeWhile<'a, T>(pub &'a dyn Fn(&str) -> bool, pub T);
 
-impl<T> Tokenizer<T> for TakeWhile<'_, T>
-where
-    T: Copy,
-{
-    fn attempt(&self, peek: &str, current_match: &str) -> GazeResult<T> {
-        //TODO this will need to be rewritten once handle Unicode better
-        if self.0(peek) {
-            GazeResult::Next
-        } else if current_match.is_empty() {
-            GazeResult::NoMatch
-        } else {
-            GazeResult::Match(self.1)
-        }
-    }
+// impl<T> Tokenizer<T> for TakeWhile<'_, T>
+// where
+//     T: Copy,
+// {
+//     fn attempt(&self, peek: &str, current_match: &str) -> GazeResult<T> {
+//         //TODO this will need to be rewritten once handle Unicode better
+//         if self.0(peek) {
+//             GazeResult::Next
+//         } else if current_match.is_empty() {
+//             GazeResult::NoMatch
+//         } else {
+//             GazeResult::Match(self.1)
+//         }
+//     }
 
-    fn attempt_end(&self, current_match: &str) -> GazeResultEnd<T> {
-        if current_match.is_empty() {
-            GazeResultEnd::NoMatch
-        } else {
-            GazeResultEnd::Match(self.1)
-        }
-    }
-}
+//     fn attempt_end(&self, current_match: &str) -> GazeResultEnd<T> {
+//         if current_match.is_empty() {
+//             GazeResultEnd::NoMatch
+//         } else {
+//             GazeResultEnd::Match(self.1)
+//         }
+//     }
+// }
 
 // /// A Step that takes values from the String until the predicate passes.
 // pub struct TakeUntil<'a>(pub &'a dyn Fn(&str) -> bool);
