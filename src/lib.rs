@@ -9,7 +9,7 @@ pub mod tokenizers;
 
 pub type Tokenizer<T> = dyn Fn(Option<&str>, &str) -> GazeResult<T>;
 
-pub fn gaze<'a, T>(input: &'a str, tokenizers: &[&Tokenizer<T>]) -> (Vec<GazeToken<'a, T>>, &'a str)
+pub fn gaze<'a, T>(input: &'a str, tokenizers: &Vec<Box<Tokenizer<T>>>) -> (Vec<GazeToken<'a, T>>, &'a str)
 where
     T: Copy,
 {
