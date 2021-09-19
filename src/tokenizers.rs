@@ -34,32 +34,34 @@ where
     }
 }
 
-//// A Step that takes values from the String until the predicate fails.
-// pub struct TakeWhile<'a, T>(pub &'a dyn Fn(&str) -> bool, pub T);
-
-// impl<T> Tokenizer<T> for TakeWhile<'_, T>
-// where
-//     T: Copy,
-// {
-//     fn attempt(&self, peek: &str, current_match: &str) -> GazeResult<T> {
-//         //TODO this will need to be rewritten once handle Unicode better
-//         if self.0(peek) {
-//             GazeResult::Next
-//         } else if current_match.is_empty() {
-//             GazeResult::NoMatch
-//         } else {
-//             GazeResult::Match(self.1)
-//         }
-//     }
-
-//     fn attempt_end(&self, current_match: &str) -> GazeResultEnd<T> {
-//         if current_match.is_empty() {
-//             GazeResultEnd::NoMatch
-//         } else {
-//             GazeResultEnd::Match(self.1)
-//         }
-//     }
-// }
+pub fn take_while<'a, T: 'a>(
+    matcher: &'a dyn Fn(&str) -> bool,
+    token: T,
+) -> impl Fn(Option<&str>, &str) -> GazeResult<T> + 'a
+where
+    T: Copy,
+{
+    move |peek: Option<&str>, current_match: &str| -> GazeResult<T> {
+        match peek {
+            Some(peek) => {
+                if matcher(peek) {
+                    GazeResult::Next
+                } else if current_match.is_empty() {
+                    GazeResult::NoMatch
+                } else {
+                    GazeResult::Match(token)
+                }
+            }
+            None => {
+                if current_match.is_empty() {
+                    GazeResult::NoMatch
+                } else {
+                    GazeResult::Match(token)
+                }
+            }
+        }
+    }
+}
 
 // /// A Step that takes values from the String until the predicate passes.
 // pub struct TakeUntil<'a>(pub &'a dyn Fn(&str) -> bool);
