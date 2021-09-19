@@ -15,9 +15,7 @@ fn match_hello(_peek: Option<&str>, current_match: &str) -> GazeResult<u8> {
 
 #[test]
 fn new_api_test() {
-    println!("start");
     let res = gaze("hello", &[&match_hello]);
-    println!("!!!{:?}", res);
     assert_eq!(
         res,
         (
