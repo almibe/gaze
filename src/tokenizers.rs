@@ -6,7 +6,41 @@ use unicode_segmentation::UnicodeSegmentation;
 
 use crate::{GazeResult, Tokenizer};
 
-//pub fn TakeString(to_match: &str) ->
+// pub fn take_string<T>(to_match: &str, token: T, peek: Option<&str>, current_match: &str) -> GazeResult<T> {
+//     todo!()
+// }
+
+pub fn take_string<'a, T: 'a>(to_match: &'a str, token: T) -> impl Fn(&str) -> GazeResult<T> + 'a where T: Copy {
+    let graphemes = to_match.graphemes(true).collect::<Vec<&str>>();
+    let input_length = to_match.len();
+    move |i: &str| -> GazeResult<T> {
+        println!("{:?} {}", graphemes, input_length);
+        if i == to_match {
+            GazeResult::Match(token)
+        } else {
+            GazeResult::NoMatch
+        }
+
+//     fn attempt(&self, peek: &str, current_match: &str) -> GazeResult<T> {
+//         if self.graphemes[current_match.len()] == peek {
+//             if current_match.len() == self.input_length - 1 {
+//                 //TODO doesn't handle unicode correctly
+//                 GazeResult::MatchAndTake(self.token)
+//             } else {
+//                 GazeResult::Next
+//             }
+//         } else {
+//             GazeResult::NoMatch
+//         }
+//     }
+
+//     fn attempt_end(&self, _: &str) -> GazeResultEnd<T> {
+//         GazeResultEnd::NoMatch
+//     }
+
+
+    }
+}
 
 // pub struct TakeString<'a, T> {
 //     graphemes: Vec<&'a str>,
