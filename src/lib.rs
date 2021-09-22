@@ -2,7 +2,6 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::fmt::Debug;
 use unicode_segmentation::UnicodeSegmentation;
 
 pub mod steps;
@@ -45,7 +44,7 @@ impl<I> Gaze<I>
         }
     }
 
-    pub fn attempt<T>(&mut self, step: &Step<I, T>) -> Option<T>
+    pub fn attempt<T>(&mut self, step: &Step<I, T>) -> Result<T, NoMatch>
     where
         I: Clone,
         T: Clone,
@@ -54,25 +53,21 @@ impl<I> Gaze<I>
             let start_of_this_loop = self.offset;
             let res = step(self);
             match res {
-                StepResult::Match(m) => {
-                    return Some(m);
+                Ok(m) => {
+                    return Ok(m);
                 }
-                StepResult::NoMatch => {
+                Err(_) => {
                     self.offset = start_of_this_loop;
-                    return None;
+                    return Err(NoMatch);
                 }
             }
         } else {
-            return None;
+            return Err(NoMatch);
         }
     }
 }
 
-pub type Step<I, T> = dyn Fn(&mut Gaze<I>) -> StepResult<T>;
+pub type Step<I, T> = dyn Fn(&mut Gaze<I>) -> Result<T, NoMatch>;
 
-#[derive(PartialEq, Debug, Clone)]
-pub enum StepResult<T>
-{
-    Match(T),
-    NoMatch,
-}
+#[derive(Clone, PartialEq, Debug)]
+pub struct NoMatch;

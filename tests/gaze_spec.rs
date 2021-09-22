@@ -3,77 +3,55 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 //use gaze::tokenizers::{TakeString, TakeWhile};
-use gaze::{Gaze, Step, StepResult};
+use gaze::{Gaze, NoMatch};
 
-#[test]
-fn basic_gaze_test() {
-    #[derive(Clone, PartialEq, Debug)]
-    enum Test {
-        A,
-        B,
-        C,
-    }
+#[derive(Clone, PartialEq, Debug)]
+enum Test {
+    A,
+    B,
+    C,
+}
 
-    fn take_2<I>(gaze: &mut Gaze<I>) -> StepResult<Vec<I>> where I: Clone {
-        let x = gaze.next();
-        match x {
-            None => StepResult::NoMatch,
-            Some(xx) => {
-                let y = gaze.next();
-                match y {
-                    None => StepResult::NoMatch,
-                    Some(yy) => {
-                        StepResult::Match(vec![xx,yy])
-                    }
+fn take_2<I>(gaze: &mut Gaze<I>) -> Result<Vec<I>, NoMatch> where I: Clone {
+    let x = gaze.next();
+    match x {
+        None => Err(NoMatch),
+        Some(xx) => {
+            let y = gaze.next();
+            match y {
+                None => Err(NoMatch),
+                Some(yy) => {
+                    Ok(vec![xx,yy])
                 }
             }
         }
     }
+}
 
+
+#[test]
+fn basic_gaze_test() -> Result<(), NoMatch> {
     let v = vec![Test::A, Test::B, Test::C];
     let mut gaze = Gaze::from_vec(v);
-    let res = gaze.attempt(&take_2);
+    let res = gaze.attempt(&take_2)?;
     assert!(!gaze.is_complete());
-    if let Some(x) = res {
-        assert_eq!(x.len(), 2);
-        assert_eq!(x[0], Test::A);
-        assert_eq!(x[1], Test::B);
-    } else {
-        assert_eq!(1,2);
-    }
+    assert_eq!(res.len(), 2);
+    assert_eq!(res[0], Test::A);
+    assert_eq!(res[1], Test::B);
+    Ok(())
 }
 
 #[test]
-fn basic_gaze_test_str() {
-    fn take_2<I>(gaze: &mut Gaze<I>) -> StepResult<Vec<I>> where I: Clone {
-        let x = gaze.next();
-        match x {
-            None => StepResult::NoMatch,
-            Some(xx) => {
-                let y = gaze.next();
-                match y {
-                    None => StepResult::NoMatch,
-                    Some(yy) => {
-                        StepResult::Match(vec![xx,yy])
-                    }
-                }
-            }
-        }
-    }
-
+fn basic_gaze_test_str() -> Result<(), NoMatch> {
     let mut gaze: Gaze<&str> = Gaze::<&str>::from_str("abc");
-    let res = gaze.attempt(&take_2);
+    let res = gaze.attempt(&take_2)?;
     assert!(!gaze.is_complete());
     assert_eq!(gaze.next(), Some("c"));
-    if let Some(x) = res {
-        assert_eq!(x.len(), 2);
-        assert_eq!(x[0], "a");
-        assert_eq!(x[1], "b");
-    } else {
-        assert_eq!(1,2);
-    }
+    assert_eq!(res.len(), 2);
+    assert_eq!(res[0], "a");
+    assert_eq!(res[1], "b");
+    Ok(())
 }
-
 
 // fn match_hello(_peek: Option<&str>, current_match: &str) -> GazeResult<u8> {
 //     if current_match == "hello" {

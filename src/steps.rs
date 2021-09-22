@@ -4,8 +4,6 @@
 
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::StepResult;
-
 // pub fn take_string<'a, T: 'a>(
 //     to_match: &'a str,
 //     token: T,
