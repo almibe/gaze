@@ -3,7 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 //use gaze::tokenizers::{TakeString, TakeWhile};
-use gaze::{Gaze, NoMatch};
+use gaze::Gaze;
 
 #[derive(Clone, PartialEq, Debug)]
 enum Test {
@@ -12,7 +12,13 @@ enum Test {
     C,
 }
 
-fn take_2<I>(gaze: &mut Gaze<I>) -> Result<Vec<I>, NoMatch> where I: Clone {
+#[derive(Clone, PartialEq, Debug)]
+pub struct NoMatch;
+
+fn take_2<I>(gaze: &mut Gaze<I>) -> Result<Vec<I>, NoMatch>
+where
+    I: Clone,
+{
     let x = gaze.next();
     match x {
         None => Err(NoMatch),
@@ -20,14 +26,11 @@ fn take_2<I>(gaze: &mut Gaze<I>) -> Result<Vec<I>, NoMatch> where I: Clone {
             let y = gaze.next();
             match y {
                 None => Err(NoMatch),
-                Some(yy) => {
-                    Ok(vec![xx,yy])
-                }
+                Some(yy) => Ok(vec![xx, yy]),
             }
         }
     }
 }
-
 
 #[test]
 fn basic_gaze_test() -> Result<(), NoMatch> {

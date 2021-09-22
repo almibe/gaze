@@ -11,8 +11,7 @@ pub struct Gaze<I> {
     input: Vec<I>,
 }
 
-impl<I> Gaze<I>
-{
+impl<I> Gaze<I> {
     pub fn from_str(text: &str) -> Gaze<&str> {
         let input = text.graphemes(true).collect::<Vec<&str>>();
         Gaze { input, offset: 0 }
@@ -26,7 +25,10 @@ impl<I> Gaze<I>
         self.offset >= self.input.len()
     }
 
-    pub fn peek(&self) -> Option<I> where I: Clone {
+    pub fn peek(&self) -> Option<I>
+    where
+        I: Clone,
+    {
         if self.is_complete() {
             None
         } else {
@@ -34,7 +36,10 @@ impl<I> Gaze<I>
         }
     }
 
-    pub fn next(&mut self) -> Option<I> where I: Clone {
+    pub fn next(&mut self) -> Option<I>
+    where
+        I: Clone,
+    {
         if self.is_complete() {
             None
         } else {
@@ -44,30 +49,23 @@ impl<I> Gaze<I>
         }
     }
 
-    pub fn attempt<T>(&mut self, step: &Step<I, T>) -> Result<T, NoMatch>
+    pub fn attempt<T, E>(&mut self, step: &Step<I, T, E>) -> Result<T, E>
     where
         I: Clone,
         T: Clone,
     {
-        if !self.is_complete() {
-            let start_of_this_loop = self.offset;
-            let res = step(self);
-            match res {
-                Ok(m) => {
-                    return Ok(m);
-                }
-                Err(_) => {
-                    self.offset = start_of_this_loop;
-                    return Err(NoMatch);
-                }
+        let start_of_this_loop = self.offset;
+        let res = step(self);
+        match res {
+            Ok(m) => {
+                Ok(m)
             }
-        } else {
-            return Err(NoMatch);
+            Err(e) => {
+                self.offset = start_of_this_loop;
+                Err(e)
+            }
         }
     }
 }
 
-pub type Step<I, T> = dyn Fn(&mut Gaze<I>) -> Result<T, NoMatch>;
-
-#[derive(Clone, PartialEq, Debug)]
-pub struct NoMatch;
+pub type Step<I, T, E> = dyn Fn(&mut Gaze<I>) -> Result<T, E>;
