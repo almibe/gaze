@@ -4,64 +4,64 @@
 
 use unicode_segmentation::UnicodeSegmentation;
 
-use crate::GazeResult;
+use crate::StepResult;
 
-pub fn take_string<'a, T: 'a>(
-    to_match: &'a str,
-    token: T,
-) -> impl Fn(Option<&str>, &str) -> GazeResult<T> + 'a
-where
-    T: Copy,
-{
-    let graphemes = to_match.graphemes(true).collect::<Vec<&str>>();
-    let input_length = to_match.len();
-    move |peek: Option<&str>, current_match: &str| -> GazeResult<T> {
-        match peek {
-            Some(peek) => {
-                if graphemes[current_match.len()] == peek {
-                    if current_match.len() == input_length - 1 {
-                        //TODO doesn't handle unicode correctly
-                        GazeResult::MatchAndTake(token)
-                    } else {
-                        GazeResult::Next
-                    }
-                } else {
-                    GazeResult::NoMatch
-                }
-            }
-            None => GazeResult::NoMatch,
-        }
-    }
-}
+// pub fn take_string<'a, T: 'a>(
+//     to_match: &'a str,
+//     token: T,
+// ) -> impl Fn(Option<&str>, &str) -> GazeResult<T> + 'a
+// where
+//     T: Copy,
+// {
+//     let graphemes = to_match.graphemes(true).collect::<Vec<&str>>();
+//     let input_length = to_match.len();
+//     move |peek: Option<&str>, current_match: &str| -> GazeResult<T> {
+//         match peek {
+//             Some(peek) => {
+//                 if graphemes[current_match.len()] == peek {
+//                     if current_match.len() == input_length - 1 {
+//                         //TODO doesn't handle unicode correctly
+//                         GazeResult::MatchAndTake(token)
+//                     } else {
+//                         GazeResult::Next
+//                     }
+//                 } else {
+//                     GazeResult::NoMatch
+//                 }
+//             }
+//             None => GazeResult::NoMatch,
+//         }
+//     }
+// }
 
-pub fn take_while<'a, T: 'a>(
-    matcher: &'a dyn Fn(&str) -> bool,
-    token: T,
-) -> impl Fn(Option<&str>, &str) -> GazeResult<T> + 'a
-where
-    T: Copy,
-{
-    move |peek: Option<&str>, current_match: &str| -> GazeResult<T> {
-        match peek {
-            Some(peek) => {
-                if matcher(peek) {
-                    GazeResult::Next
-                } else if current_match.is_empty() {
-                    GazeResult::NoMatch
-                } else {
-                    GazeResult::Match(token)
-                }
-            }
-            None => {
-                if current_match.is_empty() {
-                    GazeResult::NoMatch
-                } else {
-                    GazeResult::Match(token)
-                }
-            }
-        }
-    }
-}
+// pub fn take_while<'a, T: 'a>(
+//     matcher: &'a dyn Fn(&str) -> bool,
+//     token: T,
+// ) -> impl Fn(Option<&str>, &str) -> GazeResult<T> + 'a
+// where
+//     T: Copy,
+// {
+//     move |peek: Option<&str>, current_match: &str| -> GazeResult<T> {
+//         match peek {
+//             Some(peek) => {
+//                 if matcher(peek) {
+//                     GazeResult::Next
+//                 } else if current_match.is_empty() {
+//                     GazeResult::NoMatch
+//                 } else {
+//                     GazeResult::Match(token)
+//                 }
+//             }
+//             None => {
+//                 if current_match.is_empty() {
+//                     GazeResult::NoMatch
+//                 } else {
+//                     GazeResult::Match(token)
+//                 }
+//             }
+//         }
+//     }
+// }
 
 // /// A Step that takes values from the String until the predicate passes.
 // pub struct TakeUntil<'a>(pub &'a dyn Fn(&str) -> bool);

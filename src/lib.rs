@@ -5,9 +5,7 @@
 use std::fmt::Debug;
 use unicode_segmentation::UnicodeSegmentation;
 
-pub mod tokenizers;
-
-pub type Tokenizer<I, T> = dyn Fn(Option<I>, &Vec<I>) -> GazeResult<T>;
+pub mod steps;
 
 pub struct Gaze<I> {
     offset: usize,
@@ -15,8 +13,6 @@ pub struct Gaze<I> {
 }
 
 impl<I> Gaze<I>
-where
-    I: Copy,
 {
     pub fn from_str(text: &str) -> Gaze<&str> {
         let input = text.graphemes(true).collect::<Vec<&str>>();
@@ -31,190 +27,52 @@ where
         self.offset >= self.input.len()
     }
 
-    pub fn peek(&self) -> Option<I>
-    where
-        I: Copy,
-    {
+    pub fn peek(&self) -> Option<I> where I: Clone {
         if self.is_complete() {
             None
         } else {
-            Some(self.input[self.offset])
+            Some(self.input[self.offset].clone())
         }
     }
 
-    pub fn next(&mut self) -> Option<I> {
+    pub fn next(&mut self) -> Option<I> where I: Clone {
         if self.is_complete() {
             None
         } else {
+            let next = Some(self.input[self.offset].clone());
             self.offset += 1;
-            Some(self.input[self.offset])
+            next
         }
     }
 
-    pub fn attempt<T>(&mut self, tokenizer: &Tokenizer<I, T>) -> Option<GazeToken<T>>
+    pub fn attempt<T>(&mut self, step: &Step<I, T>) -> Option<T>
     where
-        I: Copy,
-        T: Copy,
+        I: Clone,
+        T: Clone,
     {
-        //            let mut matches: Vec<&I> = Vec::new();
-        //     // let graphemes = input.graphemes(true).collect::<Vec<&str>>();
-        //     // let mut graphemes_offset = 0usize;
         if !self.is_complete() {
-            //graphemes_offset != graphemes.len() {
-            let mut match_in_this_loop = false; //I can probably delete this?
-                                                //         //for tokenizer in tokenizers {
             let start_of_this_loop = self.offset;
-            //             //loop for each tokenizer
-            loop {
-                //                 //loop for each grapheme against the current tokenizer from the current location
-                let peek = self.input.get(self.offset).copied();
-
-                let res = tokenizer(peek, &self.input[start_of_this_loop..self.offset].to_vec());
-                match res {
-                    GazeResult::Next => match peek {
-                        Some(_) => self.offset += 1,
-                        None => {
-                            self.offset = start_of_this_loop;
-                            return None;
-                        }
-                    },
-                    GazeResult::MatchAndTake(m) => match peek {
-                        Some(_) => {
-                            self.offset += 1;
-                            match_in_this_loop = true;
-                            return Some(GazeToken {
-                                //span: &self.input[start_of_this_loop..self.offset],
-                                offset: start_of_this_loop,
-                                token_type: m,
-                            });
-                        }
-                        None => {
-                            self.offset = start_of_this_loop;
-                            return None;
-                        }
-                    },
-                    GazeResult::Match(m) => {
-                        match_in_this_loop = true;
-                        return Some(GazeToken {
-                            //span: &input[start_of_this_loop..graphemes_offset],
-                            offset: start_of_this_loop,
-                            token_type: m,
-                        });
-                    }
-                    GazeResult::NoMatch => {
-                        self.offset = start_of_this_loop;
-                        return None;
-                    }
+            let res = step(self);
+            match res {
+                StepResult::Match(m) => {
+                    return Some(m);
+                }
+                StepResult::NoMatch => {
+                    self.offset = start_of_this_loop;
+                    return None;
                 }
             }
         } else {
             return None;
         }
-        //             }
-        //             if match_in_this_loop {
-        //                 break;
-        //             } else {
-        //                 graphemes_offset = start_of_this_loop;
-        //             }
-        //         //}
-        //         if !match_in_this_loop {
-        //             break;
-        //         }
-        //     }
-        //     (matches, &input[graphemes_offset..])
     }
 }
 
-// pub fn gaze<'a, T>(
-//     input: &'a str,
-//     tokenizers: &Vec<Box<Tokenizer<T>>>,
-// ) -> (Vec<GazeToken<'a, T>>, &'a str)
-// where
-//     T: Copy,
-// {
-//     let mut matches = Vec::new();
-//     let graphemes = input.graphemes(true).collect::<Vec<&str>>();
-//     let mut graphemes_offset = 0usize;
-//     while graphemes_offset != graphemes.len() {
-//         let mut match_in_this_loop = false;
-//         for tokenizer in tokenizers {
-//             let start_of_this_loop = graphemes_offset;
-//             //loop for each tokenizer
-//             loop {
-//                 //loop for each grapheme against the current tokenizer from the current location
-//                 let peek = graphemes.get(graphemes_offset).copied();
+pub type Step<I, T> = dyn Fn(&mut Gaze<I>) -> StepResult<T>;
 
-//                 let res = tokenizer(peek, &input[start_of_this_loop..graphemes_offset]);
-//                 match res {
-//                     GazeResult::Next => match peek {
-//                         Some(_) => graphemes_offset += 1,
-//                         None => {
-//                             graphemes_offset = start_of_this_loop;
-//                             break;
-//                         }
-//                     },
-//                     GazeResult::MatchAndTake(m) => match peek {
-//                         Some(_) => {
-//                             graphemes_offset += 1;
-//                             match_in_this_loop = true;
-//                             matches.push(GazeToken {
-//                                 span: &input[start_of_this_loop..graphemes_offset],
-//                                 grapheme_offset: start_of_this_loop,
-//                                 token_type: m,
-//                             });
-//                             break;
-//                         }
-//                         None => {
-//                             graphemes_offset = start_of_this_loop;
-//                             break;
-//                         }
-//                     },
-//                     GazeResult::Match(m) => {
-//                         match_in_this_loop = true;
-//                         matches.push(GazeToken {
-//                             span: &input[start_of_this_loop..graphemes_offset],
-//                             grapheme_offset: start_of_this_loop,
-//                             token_type: m,
-//                         });
-//                         break;
-//                     }
-//                     GazeResult::NoMatch => {
-//                         graphemes_offset = start_of_this_loop;
-//                         break;
-//                     }
-//                 }
-//             }
-//             if match_in_this_loop {
-//                 break;
-//             } else {
-//                 graphemes_offset = start_of_this_loop;
-//             }
-//         }
-//         if !match_in_this_loop {
-//             break;
-//         }
-//     }
-//     (matches, &input[graphemes_offset..])
-// }
-
-#[derive(PartialEq, Debug, Clone, Copy)]
-pub enum GazeResult<T>
-where
-    T: Copy,
+#[derive(PartialEq, Debug, Clone)]
+pub enum StepResult<T>
 {
-    Next,
-    MatchAndTake(T),
     Match(T),
     NoMatch,
-}
-
-#[derive(PartialEq, Debug, Clone, Copy)]
-pub struct GazeToken<T> {
-    //<'a, I, T> {
-    //pub span: &'a Vec<I>,
-    pub offset: usize,
-    //pub byte_offset: usize,
-    //pub line: usize,
-    //pub line_grapheme_offset: usize,
-    pub token_type: T,
 }

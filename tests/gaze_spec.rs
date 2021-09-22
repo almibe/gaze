@@ -3,7 +3,77 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 //use gaze::tokenizers::{TakeString, TakeWhile};
-use gaze::{Gaze, GazeResult, GazeToken, Tokenizer};
+use gaze::{Gaze, Step, StepResult};
+
+#[test]
+fn basic_gaze_test() {
+    #[derive(Clone, PartialEq, Debug)]
+    enum Test {
+        A,
+        B,
+        C,
+    }
+
+    fn take_2<I>(gaze: &mut Gaze<I>) -> StepResult<Vec<I>> where I: Clone {
+        let x = gaze.next();
+        match x {
+            None => StepResult::NoMatch,
+            Some(xx) => {
+                let y = gaze.next();
+                match y {
+                    None => StepResult::NoMatch,
+                    Some(yy) => {
+                        StepResult::Match(vec![xx,yy])
+                    }
+                }
+            }
+        }
+    }
+
+    let v = vec![Test::A, Test::B, Test::C];
+    let mut gaze = Gaze::from_vec(v);
+    let res = gaze.attempt(&take_2);
+    assert!(!gaze.is_complete());
+    if let Some(x) = res {
+        assert_eq!(x.len(), 2);
+        assert_eq!(x[0], Test::A);
+        assert_eq!(x[1], Test::B);
+    } else {
+        assert_eq!(1,2);
+    }
+}
+
+#[test]
+fn basic_gaze_test_str() {
+    fn take_2<I>(gaze: &mut Gaze<I>) -> StepResult<Vec<I>> where I: Clone {
+        let x = gaze.next();
+        match x {
+            None => StepResult::NoMatch,
+            Some(xx) => {
+                let y = gaze.next();
+                match y {
+                    None => StepResult::NoMatch,
+                    Some(yy) => {
+                        StepResult::Match(vec![xx,yy])
+                    }
+                }
+            }
+        }
+    }
+
+    let mut gaze: Gaze<&str> = Gaze::<&str>::from_str("abc");
+    let res = gaze.attempt(&take_2);
+    assert!(!gaze.is_complete());
+    assert_eq!(gaze.next(), Some("c"));
+    if let Some(x) = res {
+        assert_eq!(x.len(), 2);
+        assert_eq!(x[0], "a");
+        assert_eq!(x[1], "b");
+    } else {
+        assert_eq!(1,2);
+    }
+}
+
 
 // fn match_hello(_peek: Option<&str>, current_match: &str) -> GazeResult<u8> {
 //     if current_match == "hello" {
