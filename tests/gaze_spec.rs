@@ -2,8 +2,13 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use std::rc::Rc;
+
 //use gaze::tokenizers::{TakeString, TakeWhile};
-use gaze::Gaze;
+use gaze::{
+    steps::{take_string, NoMatch},
+    Gaze, Step,
+};
 
 #[derive(Clone, PartialEq, Debug)]
 enum Test {
@@ -11,9 +16,6 @@ enum Test {
     B,
     C,
 }
-
-#[derive(Clone, PartialEq, Debug)]
-pub struct NoMatch;
 
 fn take_2<I>(gaze: &mut Gaze<I>) -> Result<Vec<I>, NoMatch>
 where
@@ -56,29 +58,26 @@ fn basic_gaze_test_str() -> Result<(), NoMatch> {
     Ok(())
 }
 
-// fn match_hello(_peek: Option<&str>, current_match: &str) -> GazeResult<u8> {
-//     if current_match == "hello" {
-//         GazeResult::Match(5)
-//     } else {
-//         GazeResult::Next
-//     }
-// }
+#[test]
+fn take_string_no_input() -> Result<(), NoMatch> {
+    let mut gaze: Gaze<&str> = Gaze::<&str>::from_str("hello, world");
+    let hello_step = take_string("hello");
+    let no_match_step = take_string("to_match");
+    let rest_step = take_string(", world");
 
-// #[test]
-// fn new_api_test() {
-//     let res = gaze("hello", &[&match_hello]);
-//     assert_eq!(
-//         res,
-//         (
-//             vec![GazeToken {
-//                 span: "hello",
-//                 grapheme_offset: 0,
-//                 token_type: 5
-//             }],
-//             ""
-//         )
-//     )
-// }
+    let res = gaze.attempt(&hello_step)?;
+    assert_eq!(res, "hello");
+    assert!(!gaze.is_complete());
+
+    let res = gaze.attempt(&no_match_step);
+    assert_eq!(res, Err(NoMatch));
+    assert!(!gaze.is_complete());
+
+    let res = gaze.attempt(&rest_step)?;
+    assert_eq!(res, ", world");
+    assert!(gaze.is_complete());
+    Ok(())
+}
 
 // #[test]
 // fn handle_empty_string_matcher() {

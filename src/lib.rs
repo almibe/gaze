@@ -57,9 +57,7 @@ impl<I> Gaze<I> {
         let start_of_this_loop = self.offset;
         let res = step(self);
         match res {
-            Ok(m) => {
-                Ok(m)
-            }
+            Ok(_) => res,
             Err(e) => {
                 self.offset = start_of_this_loop;
                 Err(e)
