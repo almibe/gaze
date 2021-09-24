@@ -6,9 +6,13 @@ use std::rc::Rc;
 
 //use gaze::tokenizers::{TakeString, TakeWhile};
 use gaze::{
-    steps::{take_string, NoMatch},
+    steps::{take_string, take_while_str, NoMatch},
     Gaze, Step,
 };
+
+fn is_text(s: &str) -> bool {
+    s.ge("a") && s.le("z")
+}
 
 #[derive(Clone, PartialEq, Debug)]
 enum Test {
@@ -76,6 +80,18 @@ fn take_string_no_input() -> Result<(), NoMatch> {
     let res = gaze.attempt(&rest_step)?;
     assert_eq!(res, ", world");
     assert!(gaze.is_complete());
+    Ok(())
+}
+
+#[test]
+fn take_while_basic_test() -> Result<(), NoMatch> {
+    let mut gaze: Gaze<&str> = Gaze::<&str>::from_str("hello, world");
+    let res = gaze.attempt(&take_while_str(&is_text))?;
+    assert_eq!(res, "hello");
+    assert_eq!(gaze.is_complete(), false);
+    let res = gaze.attempt(&take_string(", world"))?;
+    assert_eq!(res, ", world");
+    assert_eq!(gaze.is_complete(), true);
     Ok(())
 }
 
@@ -325,10 +341,6 @@ fn take_string_no_input() -> Result<(), NoMatch> {
 //         WS,
 //         Text,
 //         Digit,
-//     }
-
-//     fn is_text(s: &str) -> bool {
-//         s.ge("a") && s.le("z")
 //     }
 
 //     fn is_digit(s: &str) -> bool {

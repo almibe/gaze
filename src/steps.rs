@@ -38,11 +38,12 @@ pub fn take_while_str<'a>(
     move |gaze: &mut Gaze<&str>| -> Result<String, NoMatch> {
         let mut res = String::new();
         loop {
-            let next = gaze.next();
-            match next {
-                Some(next) => {
-                    if matcher(next) {
-                        res += next;
+            let peek = gaze.peek();
+            match peek {
+                Some(peek) => {
+                    if matcher(peek) {
+                        gaze.next();
+                        res += peek;
                     } else {
                         if res.is_empty() {
                             return Err(NoMatch);
