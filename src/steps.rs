@@ -32,6 +32,37 @@ pub fn take_string<'a>(
     }
 }
 
+pub fn take_while_str<'a>(
+    matcher: &'a dyn Fn(&str) -> bool,
+) -> impl Fn(&mut Gaze<&str>) -> Result<String, NoMatch> + 'a {
+    move |gaze: &mut Gaze<&str>| -> Result<String, NoMatch> {
+        let mut res = String::new();
+        loop {
+            let next = gaze.next();
+            match next {
+                Some(next) => {
+                    if matcher(next) {
+                        res += next;
+                    } else {
+                        if res.is_empty() {
+                            return Err(NoMatch);
+                        } else {
+                            return Ok(res);
+                        }
+                    }
+                }
+                None => {
+                    if res.is_empty() {
+                        return Err(NoMatch);
+                    } else {
+                        return Ok(res);
+                    }
+                }
+            }
+        }
+    }
+}
+
 pub fn take_while<'a, T>(
     matcher: &'a dyn Fn(T) -> bool,
 ) -> impl Fn(&mut Gaze<T>) -> Result<Vec<T>, NoMatch> + 'a
