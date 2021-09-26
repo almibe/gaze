@@ -64,6 +64,19 @@ impl<I> Gaze<I> {
             }
         }
     }
+
+    pub fn ignore<T, E>(&mut self, step: &Step<I, T, E>) -> () 
+    where
+        I: Clone,
+        T: Clone,
+    {
+        let start_of_this_loop = self.offset;
+        let res = step(self);
+        if let Err(_) = res {
+            self.offset = start_of_this_loop;
+        }
+        ()
+    }
 }
 
 pub type Step<I, T, E> = dyn Fn(&mut Gaze<I>) -> Result<T, E>;
