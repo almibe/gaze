@@ -32,6 +32,27 @@ pub fn take_string<'a>(
     }
 }
 
+pub fn ignore_all<'a>(
+    to_match: Vec<&'a str>, //TODO maybe make this an array instead of Vec
+) -> impl Fn(&mut Gaze<&str>) -> Result<(), NoMatch> + 'a {
+    move |gaze: &mut Gaze<&str>| -> Result<(), NoMatch> {
+        while !gaze.is_complete() {
+            let peek = gaze.peek();
+            match peek {
+                Some(peek) => {
+                    if to_match.contains(&peek) {
+                        gaze.next();
+                    } else {
+                        return Ok(());
+                    }
+                }
+                None => return Ok(()),
+            }
+        }
+        Ok(())
+    }
+}
+
 pub fn take_while_str<'a>(
     matcher: &'a dyn Fn(&str) -> bool,
 ) -> impl Fn(&mut Gaze<&str>) -> Result<String, NoMatch> + 'a {
