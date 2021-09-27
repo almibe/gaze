@@ -34,8 +34,8 @@ pub fn take_string<'a>(
 
 pub fn ignore_all<'a>(
     to_match: Vec<&'a str>, //TODO maybe make this an array instead of Vec
-) -> impl Fn(&mut Gaze<&str>) -> Result<(), NoMatch> + 'a {
-    move |gaze: &mut Gaze<&str>| -> Result<(), NoMatch> {
+) -> impl Fn(&mut Gaze<&'a str>) -> Result<(), NoMatch> {
+    move |gaze: &mut Gaze<&'a str>| -> Result<(), NoMatch> {
         while !gaze.is_complete() {
             let peek = gaze.peek();
             match peek {
@@ -55,7 +55,7 @@ pub fn ignore_all<'a>(
 
 pub fn take_while_str<'a>(
     matcher: &'a dyn Fn(&str) -> bool,
-) -> impl Fn(&mut Gaze<&str>) -> Result<String, NoMatch> + 'a {
+) -> impl Fn(&mut Gaze<&str>) -> Result<String, NoMatch> + '_ {
     move |gaze: &mut Gaze<&str>| -> Result<String, NoMatch> {
         let mut res = String::new();
         loop {
@@ -65,12 +65,10 @@ pub fn take_while_str<'a>(
                     if matcher(peek) {
                         gaze.next();
                         res += peek;
+                    } else if res.is_empty() {
+                        return Err(NoMatch);
                     } else {
-                        if res.is_empty() {
-                            return Err(NoMatch);
-                        } else {
-                            return Ok(res);
-                        }
+                        return Ok(res);
                     }
                 }
                 None => {
@@ -87,7 +85,7 @@ pub fn take_while_str<'a>(
 
 pub fn take_while<'a, T>(
     matcher: &'a dyn Fn(T) -> bool,
-) -> impl Fn(&mut Gaze<T>) -> Result<Vec<T>, NoMatch> + 'a
+) -> impl Fn(&mut Gaze<T>) -> Result<Vec<T>, NoMatch> + '_
 where
     T: Copy,
 {
@@ -99,12 +97,10 @@ where
                 Some(next) => {
                     if matcher(next) {
                         res.push(next);
+                    } else if res.is_empty() {
+                        return Err(NoMatch);
                     } else {
-                        if res.is_empty() {
-                            return Err(NoMatch);
-                        } else {
-                            return Ok(res);
-                        }
+                        return Ok(res);
                     }
                 }
                 None => {

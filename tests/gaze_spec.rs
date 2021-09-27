@@ -2,12 +2,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::rc::Rc;
-
 //use gaze::tokenizers::{TakeString, TakeWhile};
 use gaze::{
     steps::{take_string, take_while_str, NoMatch},
-    Gaze, Step,
+    Gaze,
 };
 
 fn is_text(s: &str) -> bool {

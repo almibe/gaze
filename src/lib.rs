@@ -65,17 +65,16 @@ impl<I> Gaze<I> {
         }
     }
 
-    pub fn ignore<T, E>(&mut self, step: &Step<I, T, E>) -> () 
+    pub fn ignore<T, E>(&mut self, step: &Step<I, T, E>)
     where
         I: Clone,
         T: Clone,
     {
         let start_of_this_loop = self.offset;
         let res = step(self);
-        if let Err(_) = res {
+        if res.is_err() {
             self.offset = start_of_this_loop;
         }
-        ()
     }
 }
 
