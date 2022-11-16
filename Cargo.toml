@@ -3,12 +3,12 @@ name = "gaze"
 version = "0.5.0"
 publish = false
 authors = ["Alex Michael Berry <alexmiberry@gmail.com>"]
-edition = "2018"
+edition = "2021"
 license = "MPL-2.0"
-description = "Gaze is a small utility library with the goal of making it easier to scan/lex text."
+description = "Gaze is a small utility library with the goal of making it easier to scan/lex text and collections."
 repository = "https://github.com/almibe/gaze/"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-unicode-segmentation = "1.8.0"
+unicode-segmentation = "1.10.0"
