@@ -6,7 +6,7 @@ use unicode_segmentation::UnicodeSegmentation;
 
 use crate::Gaze;
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub struct NoMatch;
 
 pub fn take_string<'a>(
@@ -53,9 +53,9 @@ pub fn ignore_all<'a>(
     }
 }
 
-pub fn take_while_str<'a>(
-    matcher: &'a dyn Fn(&str) -> bool,
-) -> impl Fn(&mut Gaze<&str>) -> Result<String, NoMatch> + '_ {
+pub fn take_while_str(
+    matcher: impl Fn(&str) -> bool,
+) -> impl Fn(&mut Gaze<&str>) -> Result<String, NoMatch> {
     move |gaze: &mut Gaze<&str>| -> Result<String, NoMatch> {
         let mut res = String::new();
         loop {
@@ -83,9 +83,9 @@ pub fn take_while_str<'a>(
     }
 }
 
-pub fn take_while<'a, T>(
-    matcher: &'a dyn Fn(T) -> bool,
-) -> impl Fn(&mut Gaze<T>) -> Result<Vec<T>, NoMatch> + '_
+pub fn take_while<T>(
+    matcher: impl Fn(T) -> bool,
+) -> impl Fn(&mut Gaze<T>) -> Result<Vec<T>, NoMatch>
 where
     T: Copy,
 {
