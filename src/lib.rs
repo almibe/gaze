@@ -4,7 +4,7 @@
 
 use unicode_segmentation::UnicodeSegmentation;
 
-pub mod steps;
+pub mod nibblers;
 
 pub struct Gaze<I> {
     offset: usize,
@@ -12,19 +12,23 @@ pub struct Gaze<I> {
 }
 
 impl<I> Gaze<I> {
+    /// A helper constructor that takes a str and converts it to a Vec of graphemes.
     pub fn from_str(text: &str) -> Gaze<&str> {
         let input = text.graphemes(true).collect::<Vec<&str>>();
         Gaze { input, offset: 0 }
     }
 
+    /// Construct a Gaze instances from a Vec.
     pub fn from_vec(input: Vec<I>) -> Gaze<I> {
         Gaze { input, offset: 0 }
     }
 
+    /// Returns true if all data has been consumed.
     pub fn is_complete(&self) -> bool {
         self.offset >= self.input.len()
     }
 
+    /// Look at the next 
     pub fn peek(&self) -> Option<I>
     where
         I: Clone,
@@ -49,10 +53,10 @@ impl<I> Gaze<I> {
         }
     }
 
-    pub fn attempt<T, E>(&mut self, step: &Step<I, T, E>) -> Result<T, E>
+    pub fn attempt<O, E>(&mut self, step: &Step<I, O, E>) -> Result<O, E>
     where
         I: Clone,
-        T: Clone,
+        O: Clone,
     {
         let start_of_this_loop = self.offset;
         let res = step(self);
@@ -65,10 +69,10 @@ impl<I> Gaze<I> {
         }
     }
 
-    pub fn ignore<T, E>(&mut self, step: &Step<I, T, E>)
+    pub fn ignore<O, E>(&mut self, step: &Step<I, O, E>)
     where
         I: Clone,
-        T: Clone,
+        O: Clone,
     {
         let start_of_this_loop = self.offset;
         let res = step(self);
@@ -78,4 +82,4 @@ impl<I> Gaze<I> {
     }
 }
 
-pub type Step<I, T, E> = dyn Fn(&mut Gaze<I>) -> Result<T, E>;
+pub type Step<I, O, E> = dyn Fn(&mut Gaze<I>) -> Result<O, E>;

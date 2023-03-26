@@ -34,7 +34,7 @@ Real world examples will be linked soon.
 
 ## Goals
 
- * Provide a straight forward pattern for working with text
+ * Provide a straight forward pattern for working with text and collections
  * Provide common helper functions
  * Encourage the use of functions
  * Handle unicode well (thanks to unicode-segmentation)
