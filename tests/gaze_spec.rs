@@ -4,7 +4,7 @@
 
 //use gaze::tokenizers::{TakeString, TakeWhile};
 use gaze::{
-    nibblers::{take_string, take_while_str, NoMatch},
+    nibblers::{take_string, take_while_str},
     Gaze, TakeNibbler
 };
 
@@ -19,98 +19,89 @@ enum Test {
     C,
 }
 
-fn take_2<I>(gaze: &mut Gaze<I>) -> Result<Vec<I>, NoMatch>
+fn take_2<I>(gaze: &mut Gaze<I>) -> Option<Vec<I>>
 where
     I: Clone,
 {
     let x = gaze.next();
     match x {
-        None => Err(NoMatch),
+        None => None,
         Some(xx) => {
             let y = gaze.next();
             match y {
-                None => Err(NoMatch),
-                Some(yy) => Ok(vec![xx, yy]),
+                None => None,
+                Some(yy) => Some(vec![xx, yy]),
             }
         }
     }
 }
 
 #[test]
-fn basic_gaze_test() -> Result<(), NoMatch> {
+fn basic_gaze_test() {
     let v = vec![Test::A, Test::B, Test::C];
     let mut gaze = Gaze::from_vec(v);
-    let res = gaze.attempt(&take_2)?;
+    let res = gaze.attempt(&take_2);
     assert!(!gaze.is_complete());
-    assert_eq!(res.len(), 2);
-    assert_eq!(res[0], Test::A);
-    assert_eq!(res[1], Test::B);
-    Ok(())
+    assert_eq!(res, Some(vec![Test::A, Test::B]));
 }
 
 #[test]
-fn basic_gaze_test_str() -> Result<(), NoMatch> {
+fn basic_gaze_test_str() {
     let mut gaze: Gaze<&str> = Gaze::<&str>::from_str("abc");
-    let res = gaze.attempt(&take_2)?;
+    let res = gaze.attempt(&take_2);
     assert!(!gaze.is_complete());
     assert_eq!(gaze.next(), Some("c"));
-    assert_eq!(res.len(), 2);
-    assert_eq!(res[0], "a");
-    assert_eq!(res[1], "b");
-    Ok(())
+    assert_eq!(res, Some(vec!["a", "b"]));
 }
 
 #[test]
-fn take_string_no_input() -> Result<(), NoMatch> {
+fn take_string_no_input() {
     let mut gaze: Gaze<&str> = Gaze::<&str>::from_str("hello, world");
     let hello_step = take_string("hello");
     let no_match_step = take_string("to_match");
     let rest_step = take_string(", world");
 
-    let res = gaze.attempt(&hello_step)?;
-    assert_eq!(res, "hello");
+    let res = gaze.attempt(&hello_step);
+    assert_eq!(res, Some("hello"));
     assert!(!gaze.is_complete());
 
     let res = gaze.attempt(&no_match_step);
-    assert_eq!(res, Err(NoMatch));
+    assert_eq!(res, None);
     assert!(!gaze.is_complete());
 
-    let res = gaze.attempt(&rest_step)?;
-    assert_eq!(res, ", world");
+    let res = gaze.attempt(&rest_step);
+    assert_eq!(res, Some(", world"));
     assert!(gaze.is_complete());
-    Ok(())
 }
 
 #[test]
-fn take_while_basic_test() -> Result<(), NoMatch> {
+fn take_while_basic_test() {
     let mut gaze: Gaze<&str> = Gaze::<&str>::from_str("hello, world");
-    let res = gaze.attempt(&take_while_str(&is_text))?;
-    assert_eq!(res, "hello");
+    let res = gaze.attempt(&take_while_str(&is_text));
+    assert_eq!(res, Some(String::from("hello")));
     assert_eq!(gaze.is_complete(), false);
-    let res = gaze.attempt(&take_string(", world"))?;
-    assert_eq!(res, ", world");
+    let res = gaze.attempt(&take_string(", world"));
+    assert_eq!(res, Some(", world"));
     assert_eq!(gaze.is_complete(), true);
-    Ok(())
 }
 
 #[test]
-fn take_while_str_closure() -> Result<(), NoMatch> {
+fn take_while_str_closure() {
     let mut gaze: Gaze<&str> = Gaze::<&str>::from_str("hello, world");
-    let res = gaze.attempt(&take_while_str(&is_text))?;
-    assert_eq!(res, "hello");
+    let res = gaze.attempt(&take_while_str(&is_text));
+    assert_eq!(res, Some(String::from("hello")));
     assert_eq!(gaze.is_complete(), false);
-    let res = gaze.attempt(&take_string(", world"))?;
-    assert_eq!(res, ", world");
+    let res = gaze.attempt(&take_string(", world"));
+    assert_eq!(res, Some(", world"));
     assert_eq!(gaze.is_complete(), true);
-    Ok(())
 }
 
 #[test]
 fn take_nibbler() {
     let mut gaze: Gaze<Test> = Gaze::from_vec(vec![Test::A, Test::B]);
     let mut nibbler = TakeNibbler { to_match: Test::A };
-    let res: Result<Test, ()> = gaze.attempt_nibbler(&mut nibbler);
-    assert_eq!(res, Ok(Test::A));
+    let res: Option<Test> = gaze.attempt_nibbler(&mut nibbler);
+    assert_eq!(res, Some(Test::A));
     assert_eq!(gaze.peek(), Some(Test::B));
 }
 

@@ -6,14 +6,11 @@ use unicode_segmentation::UnicodeSegmentation;
 
 use crate::Gaze;
 
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub struct NoMatch;
-
 pub fn take_string<'a>(
     to_match: &'a str,
-) -> impl Fn(&mut Gaze<&str>) -> Result<&'a str, NoMatch> + 'a {
+) -> impl Fn(&mut Gaze<&str>) -> Option<&'a str> + 'a {
     let graphemes = to_match.graphemes(true).collect::<Vec<&str>>();
-    move |gaze: &mut Gaze<&str>| -> Result<&str, NoMatch> {
+    move |gaze: &mut Gaze<&str>| -> Option<&str> {
         let mut offset = 0usize;
         while offset < graphemes.len() {
             let next_char = gaze.next();
@@ -22,20 +19,20 @@ pub fn take_string<'a>(
                     if graphemes[offset] == next_char {
                         offset += 1;
                     } else {
-                        return Err(NoMatch);
+                        return None;
                     }
                 }
-                None => return Err(NoMatch),
+                None => return None,
             }
         }
-        Ok(to_match)
+        Some(to_match)
     }
 }
 
 pub fn ignore_all<'a>(
     to_match: Vec<&'a str>, //TODO maybe make this an array instead of Vec
-) -> impl Fn(&mut Gaze<&'a str>) -> Result<(), NoMatch> {
-    move |gaze: &mut Gaze<&'a str>| -> Result<(), NoMatch> {
+) -> impl Fn(&mut Gaze<&'a str>) -> Option<()> {
+    move |gaze: &mut Gaze<&'a str>| -> Option<()> {
         while !gaze.is_complete() {
             let peek = gaze.peek();
             match peek {
@@ -43,20 +40,20 @@ pub fn ignore_all<'a>(
                     if to_match.contains(&peek) {
                         gaze.next();
                     } else {
-                        return Ok(());
+                        return Some(());
                     }
                 }
-                None => return Ok(()),
+                None => return Some(()),
             }
         }
-        Ok(())
+        Some(())
     }
 }
 
 pub fn take_while_str(
     matcher: impl Fn(&str) -> bool,
-) -> impl Fn(&mut Gaze<&str>) -> Result<String, NoMatch> {
-    move |gaze: &mut Gaze<&str>| -> Result<String, NoMatch> {
+) -> impl Fn(&mut Gaze<&str>) -> Option<String> {
+    move |gaze: &mut Gaze<&str>| -> Option<String> {
         let mut res = String::new();
         loop {
             let peek = gaze.peek();
@@ -66,16 +63,16 @@ pub fn take_while_str(
                         gaze.next();
                         res += peek;
                     } else if res.is_empty() {
-                        return Err(NoMatch);
+                        return None;
                     } else {
-                        return Ok(res);
+                        return Some(res);
                     }
                 }
                 None => {
                     if res.is_empty() {
-                        return Err(NoMatch);
+                        return None;
                     } else {
-                        return Ok(res);
+                        return Some(res);
                     }
                 }
             }
@@ -85,11 +82,11 @@ pub fn take_while_str(
 
 pub fn take_while<T>(
     matcher: impl Fn(T) -> bool,
-) -> impl Fn(&mut Gaze<T>) -> Result<Vec<T>, NoMatch>
+) -> impl Fn(&mut Gaze<T>) -> Option<Vec<T>>
 where
     T: Copy,
 {
-    move |gaze: &mut Gaze<T>| -> Result<Vec<T>, NoMatch> {
+    move |gaze: &mut Gaze<T>| -> Option<Vec<T>> {
         let mut res = Vec::new();
         loop {
             let next = gaze.next();
@@ -98,16 +95,16 @@ where
                     if matcher(next) {
                         res.push(next);
                     } else if res.is_empty() {
-                        return Err(NoMatch);
+                        return None;
                     } else {
-                        return Ok(res);
+                        return Some(res);
                     }
                 }
                 None => {
                     if res.is_empty() {
-                        return Err(NoMatch);
+                        return None;
                     } else {
-                        return Ok(res);
+                        return Some(res);
                     }
                 }
             }
