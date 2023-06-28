@@ -5,7 +5,7 @@
 //use gaze::tokenizers::{TakeString, TakeWhile};
 use gaze::{
     nibblers::{take_string, take_while_str, NoMatch},
-    Gaze,
+    Gaze, TakeNibbler
 };
 
 fn is_text(s: &str) -> bool {
@@ -103,6 +103,15 @@ fn take_while_str_closure() -> Result<(), NoMatch> {
     assert_eq!(res, ", world");
     assert_eq!(gaze.is_complete(), true);
     Ok(())
+}
+
+#[test]
+fn take_nibbler() {
+    let mut gaze: Gaze<Test> = Gaze::from_vec(vec![Test::A, Test::B]);
+    let mut nibbler = TakeNibbler { to_match: Test::A };
+    let res: Result<Test, ()> = gaze.attempt_nibbler(&mut nibbler);
+    assert_eq!(res, Ok(Test::A));
+    assert_eq!(gaze.peek(), Some(Test::B));
 }
 
 // #[test]

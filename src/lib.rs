@@ -69,6 +69,22 @@ impl<I> Gaze<I> {
         }
     }
 
+    pub fn attempt_nibbler<O, E>(&mut self, nibbler: &mut dyn Nibbler<I, O, E>) -> Result<O, E>
+    where
+        I: Clone,
+        O: Clone,
+    {
+        let start_of_this_loop = self.offset;
+        let res = nibbler.run(self);
+        match res {
+            Ok(_) => res,
+            Err(e) => {
+                self.offset = start_of_this_loop;
+                Err(e)
+            }
+        }
+    }
+
     pub fn ignore<O, E>(&mut self, step: &Step<I, O, E>)
     where
         I: Clone,
@@ -83,3 +99,24 @@ impl<I> Gaze<I> {
 }
 
 pub type Step<I, O, E> = dyn Fn(&mut Gaze<I>) -> Result<O, E>;
+
+pub trait Nibbler<I, O, E> {
+    fn run(&mut self, gaze: &mut Gaze<I>) -> Result<O, E>;
+}
+
+pub struct TakeNibbler<I: Clone> { pub to_match: I }
+
+impl <I: Clone + PartialEq>Nibbler<I, I, ()> for TakeNibbler<I> {
+    fn run(&mut self, gaze: &mut Gaze<I>) -> Result<I, ()> {
+        match gaze.next() {
+            Some(value) => {
+                if value == self.to_match {
+                    Ok(self.to_match.clone())
+                } else {
+                    Err(())
+                }
+            },
+            None => Err(())
+        }
+    }
+}
