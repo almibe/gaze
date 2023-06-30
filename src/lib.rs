@@ -53,13 +53,13 @@ impl<I> Gaze<I> {
         }
     }
 
-    pub fn attempt<O>(&mut self, step: &Step<I, O>) -> Option<O>
+    pub fn attemptf<O>(&mut self, nibbler: &mut impl Fn(&mut Gaze<I>) -> Option<O>) -> Option<O>  // (impl Nibbler<I, O> + ?Sized)) -> Option<O>
     where
         I: Clone,
         O: Clone,
     {
         let start_of_this_loop = self.offset;
-        let res = step(self);
+        let res = nibbler(self);
         match res {
             Some(_) => res,
             None => {
@@ -69,7 +69,7 @@ impl<I> Gaze<I> {
         }
     }
 
-    pub fn attempt_nibbler<O>(&mut self, nibbler: &mut dyn Nibbler<I, O>) -> Option<O>
+    pub fn attempt<O>(&mut self, nibbler: &mut (impl Nibbler<I, O> + ?Sized)) -> Option<O>
     where
         I: Clone,
         O: Clone,
@@ -84,39 +84,18 @@ impl<I> Gaze<I> {
             }
         }
     }
-
-    pub fn ignore<O>(&mut self, step: &Step<I, O>)
-    where
-        I: Clone,
-        O: Clone,
-    {
-        let start_of_this_loop = self.offset;
-        let res = step(self);
-        if res.is_none() {
-            self.offset = start_of_this_loop;
-        }
-    }
 }
 
-pub type Step<I, O> = dyn Fn(&mut Gaze<I>) -> Option<O>;
+// fn map<I, O, NO, F>(n: impl Nibbler<I, O>, f: F) -> Box<dyn Nibbler<I, NO>>
+// where
+//     F: Fn(O) -> NO {
+//         todo!()
+//     }
+
 
 pub trait Nibbler<I, O> {
     fn run(&mut self, gaze: &mut Gaze<I>) -> Option<O>;
-}
-
-pub struct TakeNibbler<I: Clone> { pub to_match: I }
-
-impl <I: Clone + PartialEq>Nibbler<I, I> for TakeNibbler<I> {
-    fn run(&mut self, gaze: &mut Gaze<I>) -> Option<I> {
-        match gaze.next() {
-            Some(value) => {
-                if value == self.to_match {
-                    Some(self.to_match.clone())
-                } else {
-                    None
-                }
-            },
-            None => None
-        }
-    }
+    // fn map<NO, F>(&self, f: F) -> Box<dyn Nibbler<I, NO>>
+    //     where
+    //         F: Fn(O) -> NO;
 }
