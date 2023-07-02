@@ -4,8 +4,8 @@
 
 //use gaze::tokenizers::{TakeString, TakeWhile};
 use gaze::{
-    nibblers::{TakeNblr, TakeFirstNblr},
-    Gaze
+    nibblers::{TakeFirstNblr, TakeNblr},
+    Gaze,
 };
 
 fn is_text(s: &str) -> bool {

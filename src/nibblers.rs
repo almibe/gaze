@@ -6,9 +6,11 @@
 
 use crate::{Gaze, Nibbler};
 
-pub struct TakeNblr<I: Clone> { pub to_match: I }
+pub struct TakeNblr<I: Clone> {
+    pub to_match: I,
+}
 
-impl <I: Clone + PartialEq>Nibbler<I, I> for TakeNblr<I> {
+impl<I: Clone + PartialEq> Nibbler<I, I> for TakeNblr<I> {
     fn run(&mut self, gaze: &mut Gaze<I>) -> Option<I> {
         match gaze.next() {
             Some(value) => {
@@ -17,15 +19,18 @@ impl <I: Clone + PartialEq>Nibbler<I, I> for TakeNblr<I> {
                 } else {
                     None
                 }
-            },
-            None => None
+            }
+            None => None,
         }
     }
 }
 
-pub struct ConvertNblr<I: Clone, O: Clone> { pub to_match: I, pub new_value: O }
+pub struct ConvertNblr<I: Clone, O: Clone> {
+    pub to_match: I,
+    pub new_value: O,
+}
 
-impl <I: Clone + PartialEq, O: Clone>Nibbler<I, O> for ConvertNblr<I, O> {
+impl<I: Clone + PartialEq, O: Clone> Nibbler<I, O> for ConvertNblr<I, O> {
     fn run(&mut self, gaze: &mut Gaze<I>) -> Option<O> {
         match gaze.next() {
             Some(value) => {
@@ -34,20 +39,19 @@ impl <I: Clone + PartialEq, O: Clone>Nibbler<I, O> for ConvertNblr<I, O> {
                 } else {
                     None
                 }
-            },
-            None => None
+            }
+            None => None,
         }
     }
 }
 
 pub struct TakeFirstNblr<I, O>(pub Vec<Box<dyn Nibbler<I, O>>>);
 
-impl <I: Clone + PartialEq, O: Clone + PartialEq>Nibbler<I, O> for TakeFirstNblr<I, O> {
+impl<I: Clone + PartialEq, O: Clone + PartialEq> Nibbler<I, O> for TakeFirstNblr<I, O> {
     fn run(&mut self, gaze: &mut Gaze<I>) -> Option<O> {
         for nibbler in &mut self.0 {
-            match gaze.attempt(nibbler.as_mut()) {
-                Some(value) => return Some(value),
-                None => ()
+            if let Some(value) = gaze.attempt(nibbler.as_mut()) {
+                return Some(value);
             }
         }
         None
@@ -56,10 +60,10 @@ impl <I: Clone + PartialEq, O: Clone + PartialEq>Nibbler<I, O> for TakeFirstNblr
 
 pub struct MapNblr<I, O, NO> {
     pub nibbler: Box<dyn Nibbler<I, O>>,
-    pub mapper: dyn Fn(O) -> NO
+    pub mapper: dyn Fn(O) -> NO,
 }
 
-impl <I: Clone + PartialEq, O: Clone + PartialEq, NO>Nibbler<I, NO> for MapNblr<I, O, NO> {
+impl<I: Clone + PartialEq, O: Clone + PartialEq, NO> Nibbler<I, NO> for MapNblr<I, O, NO> {
     fn run(&mut self, gaze: &mut Gaze<I>) -> Option<NO> {
         gaze.attempt(self.nibbler.as_mut()).map(&self.mapper)
     }

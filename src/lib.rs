@@ -28,7 +28,7 @@ impl<I> Gaze<I> {
         self.offset >= self.input.len()
     }
 
-    /// Look at the next 
+    /// Look at the next
     pub fn peek(&self) -> Option<I>
     where
         I: Clone,
@@ -53,7 +53,8 @@ impl<I> Gaze<I> {
         }
     }
 
-    pub fn attemptf<O>(&mut self, nibbler: &mut impl Fn(&mut Gaze<I>) -> Option<O>) -> Option<O>  // (impl Nibbler<I, O> + ?Sized)) -> Option<O>
+    pub fn attemptf<O>(&mut self, nibbler: &mut impl Fn(&mut Gaze<I>) -> Option<O>) -> Option<O>
+    // (impl Nibbler<I, O> + ?Sized)) -> Option<O>
     where
         I: Clone,
         O: Clone,
@@ -86,16 +87,6 @@ impl<I> Gaze<I> {
     }
 }
 
-// fn map<I, O, NO, F>(n: impl Nibbler<I, O>, f: F) -> Box<dyn Nibbler<I, NO>>
-// where
-//     F: Fn(O) -> NO {
-//         todo!()
-//     }
-
-
 pub trait Nibbler<I, O> {
     fn run(&mut self, gaze: &mut Gaze<I>) -> Option<O>;
-    // fn map<NO, F>(&self, f: F) -> Box<dyn Nibbler<I, NO>>
-    //     where
-    //         F: Fn(O) -> NO;
 }
