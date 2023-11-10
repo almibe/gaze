@@ -40,6 +40,7 @@ impl<I> Gaze<I> {
         }
     }
 
+    /// Get next element and increment position.
     pub fn next(&mut self) -> Option<I>
     where
         I: Clone,
@@ -53,24 +54,7 @@ impl<I> Gaze<I> {
         }
     }
 
-    pub fn attemptf<O>(&mut self, nibbler: &mut impl Fn(&mut Gaze<I>) -> Option<O>) -> Option<O>
-    // (impl Nibbler<I, O> + ?Sized)) -> Option<O>
-    where
-        I: Clone,
-        O: Clone,
-    {
-        let start_of_this_loop = self.offset;
-        let res = nibbler(self);
-        match res {
-            Some(_) => res,
-            None => {
-                self.offset = start_of_this_loop;
-                None
-            }
-        }
-    }
-
-    pub fn attempt<O>(&mut self, nibbler: &mut (impl Nibbler<I, O> + ?Sized)) -> Option<O>
+    pub fn attempt<O, E>(&mut self, nibbler: &(impl Nibbler<I, O, E> + ?Sized)) -> Result<Option<O>, E>
     where
         I: Clone,
         O: Clone,
@@ -78,15 +62,16 @@ impl<I> Gaze<I> {
         let start_of_this_loop = self.offset;
         let res = nibbler.run(self);
         match res {
-            Some(_) => res,
-            None => {
+            Ok(Some(_)) => res,
+            Ok(None) => {
                 self.offset = start_of_this_loop;
-                None
+                Ok(None)
             }
+            Err(err) => Err(err),
         }
     }
 }
 
-pub trait Nibbler<I, O> {
-    fn run(&mut self, gaze: &mut Gaze<I>) -> Option<O>;
+pub trait Nibbler<I, O, E> {
+    fn run(&self, gaze: &mut Gaze<I>) -> Result<Option<O>, E>;
 }

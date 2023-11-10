@@ -5,7 +5,7 @@
 //use gaze::tokenizers::{TakeString, TakeWhile};
 use gaze::{
     nibblers::{TakeFirstNblr, TakeNblr},
-    Gaze,
+    Gaze, Nibbler,
 };
 
 fn is_text(s: &str) -> bool {
@@ -100,45 +100,45 @@ where
 fn take_nibbler() {
     let mut gaze: Gaze<Test> = Gaze::from_vec(vec![Test::A, Test::B]);
     let mut nibbler = TakeNblr { to_match: Test::A };
-    let res: Option<Test> = gaze.attempt(&mut nibbler);
-    assert_eq!(res, Some(Test::A));
+    let res: Result<Option<Test>, ()> = gaze.attempt(&mut nibbler);
+    assert_eq!(res, Ok(Some(Test::A)));
     assert_eq!(gaze.peek(), Some(Test::B));
 }
 
 #[test]
 fn take_first() {
     let mut gaze = Gaze::from_vec(vec![Test::A, Test::B, Test::C]);
-    let mut nibbler = TakeFirstNblr(vec![
+    let mut nibbler = TakeFirstNblr::<Test, Test, ()>(vec![
         Box::new(TakeNblr { to_match: Test::C }),
         Box::new(TakeNblr { to_match: Test::B }),
         Box::new(TakeNblr { to_match: Test::A }),
     ]);
     let res = gaze.attempt(&mut nibbler);
-    assert_eq!(res, Some(Test::A));
+    assert_eq!(res, Ok(Some(Test::A)));
     let res = gaze.attempt(&mut nibbler);
-    assert_eq!(res, Some(Test::B));
+    assert_eq!(res, Ok(Some(Test::B)));
     let res = gaze.attempt(&mut nibbler);
-    assert_eq!(res, Some(Test::C));
+    assert_eq!(res, Ok(Some(Test::C)));
     let res = gaze.attempt(&mut nibbler);
-    assert_eq!(res, None);
+    assert_eq!(res, Ok(None));
 }
 
 #[test]
 fn take_first_and_map() {
     let mut gaze = Gaze::from_vec(vec![Test::A, Test::B, Test::C]);
-    let mut nibbler = TakeFirstNblr(vec![
+    let mut nibbler = TakeFirstNblr::<Test, Test, ()>(vec![
         Box::new(TakeNblr { to_match: Test::C }),
         Box::new(TakeNblr { to_match: Test::B }),
         Box::new(TakeNblr { to_match: Test::A }),
     ]);
     let res = gaze.attempt(&mut nibbler);
-    assert_eq!(res, Some(Test::A));
+    assert_eq!(res, Ok(Some(Test::A)));
     let res = gaze.attempt(&mut nibbler);
-    assert_eq!(res, Some(Test::B));
+    assert_eq!(res, Ok(Some(Test::B)));
     let res = gaze.attempt(&mut nibbler);
-    assert_eq!(res, Some(Test::C));
+    assert_eq!(res, Ok(Some(Test::C)));
     let res = gaze.attempt(&mut nibbler);
-    assert_eq!(res, None);
+    assert_eq!(res, Ok(None));
 }
 
 // #[test]
