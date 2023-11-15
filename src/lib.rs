@@ -54,6 +54,25 @@ impl<I> Gaze<I> {
         }
     }
 
+    #[deprecated]
+    pub fn attemptf<O, E>(&mut self, nibbler: &mut impl Fn(&mut Gaze<I>) -> Result<Option<O>, E>) -> Result<Option<O>, E>
+    // (impl Nibbler<I, O> + ?Sized)) -> Option<O>
+    where
+        I: Clone,
+        O: Clone,
+    {
+        let start_of_this_loop = self.offset;
+        let res = nibbler(self);
+        match res {
+            Ok(Some(_)) => res,
+            Ok(None) => {
+                self.offset = start_of_this_loop;
+                Ok(None)
+            }
+            Err(_) => res,
+        }
+    }
+
     pub fn attempt<O, E>(&mut self, nibbler: &(impl Nibbler<I, O, E> + ?Sized)) -> Result<Option<O>, E>
     where
         I: Clone,
